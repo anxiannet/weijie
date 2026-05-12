@@ -1,0 +1,101 @@
+
+{
+  "placeholderImages": [
+    {
+      "id": "h-1",
+      "description": "Luxury Condominium near NUS",
+      "imageUrl": "https://picsum.photos/seed/h1/800/600",
+      "imageHint": "modern apartment"
+    },
+    {
+      "id": "h-2",
+      "description": "Student Loft near NTU",
+      "imageUrl": "https://picsum.photos/seed/h2/800/600",
+      "imageHint": "student housing"
+    },
+    {
+      "id": "h-3",
+      "description": "Co-living Space Tanjong Pagar",
+      "imageUrl": "https://picsum.photos/seed/h3/800/600",
+      "imageHint": "living room"
+    },
+    {
+      "id": "h-4",
+      "description": "HDB Flat near SMU",
+      "imageUrl": "https://picsum.photos/seed/h4/800/600",
+      "imageHint": "singapore residential"
+    },
+    {
+      "id": "h-5",
+      "description": "Premium Residence Orchard",
+      "imageUrl": "https://picsum.photos/seed/h5/800/600",
+      "imageHint": "luxury residence"
+    },
+    {
+      "id": "s-1",
+      "description": "National University of Singapore (NUS)",
+      "imageUrl": "https://picsum.photos/seed/s1/800/600",
+      "imageHint": "university campus"
+    },
+    {
+      "id": "s-2",
+      "description": "Nanyang Technological University (NTU)",
+      "imageUrl": "https://picsum.photos/seed/s2/800/600",
+      "imageHint": "modern architecture"
+    },
+    {
+      "id": "s-3",
+      "description": "Singapore Management University (SMU)",
+      "imageUrl": "https://picsum.photos/seed/s3/800/600",
+      "imageHint": "city university"
+    },
+    {
+      "id": "f-1",
+      "description": "Haidilao Hot Pot",
+      "imageUrl": "https://picsum.photos/seed/f1/800/600",
+      "imageHint": "chinese hotpot"
+    },
+    {
+      "id": "f-2",
+      "description": "Old Airport Road Food Centre",
+      "imageUrl": "https://picsum.photos/seed/f2/800/600",
+      "imageHint": "singapore hawker"
+    },
+    {
+      "id": "f-3",
+      "description": "Crystal Jade Palace",
+      "imageUrl": "https://picsum.photos/seed/f3/800/600",
+      "imageHint": "dim sum"
+    },
+    {
+      "id": "f-4",
+      "description": "Tian Tian Hainanese Chicken Rice",
+      "imageUrl": "https://picsum.photos/seed/f4/800/600",
+      "imageHint": "chicken rice"
+    },
+    {
+      "id": "f-5",
+      "description": "Birds of a Feather",
+      "imageUrl": "https://picsum.photos/seed/f5/800/600",
+      "imageHint": "fusion restaurant"
+    },
+    {
+      "id": "e-1",
+      "description": "Orientation Meetup 2024",
+      "imageUrl": "https://picsum.photos/seed/e1/800/600",
+      "imageHint": "social event"
+    },
+    {
+      "id": "e-2",
+      "description": "Tech Networking Night",
+      "imageUrl": "https://picsum.photos/seed/e2/800/600",
+      "imageHint": "networking party"
+    },
+    {
+      "id": "e-3",
+      "description": "Sentosa Beach Outing",
+      "imageUrl": "https://picsum.photos/seed/e3/800/600",
+      "imageHint": "beach resort"
+    }
+  ]
+}
