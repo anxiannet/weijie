@@ -1,6 +1,7 @@
+
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Home as HomeIcon, 
   GraduationCap, 
@@ -19,13 +20,14 @@ import {
   ExternalLink,
   Phone,
   Info,
-  Globe
+  Globe,
+  Building
 } from 'lucide-react';
 import { SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter, SidebarGroup, SidebarGroupLabel, SidebarTrigger } from '@/components/ui/sidebar';
 import { Input } from '@/components/ui/input';
 import { NotionCard } from '@/components/NotionCard';
 import { SettleAdvisor } from '@/components/SettleAdvisor';
-import { HOUSING_MOCK, SCHOOLS_MOCK, FOOD_MOCK, EVENTS_MOCK } from '@/app/lib/mock-data';
+import { HOUSING_MOCK, SCHOOLS_MOCK, FOOD_MOCK, EVENTS_MOCK, Housing } from '@/app/lib/mock-data';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
@@ -85,16 +87,29 @@ export default function AppHome() {
 
   const bookmarkedItems = allItems.filter(item => bookmarks.includes(item.id));
 
-  const filteredHousing = HOUSING_MOCK.filter(h => h.title.toLowerCase().includes(searchQuery.toLowerCase()));
+  // 增强房源搜索：支持按标题、地点或关联学校搜索
+  const filteredHousing = HOUSING_MOCK.filter(h => 
+    h.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    h.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    h.distanceToUni.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+  
   const filteredSchools = SCHOOLS_MOCK.filter(s => s.name.toLowerCase().includes(searchQuery.toLowerCase()));
   const filteredFood = FOOD_MOCK.filter(f => f.name.toLowerCase().includes(searchQuery.toLowerCase()));
   const filteredEvents = EVENTS_MOCK.filter(e => e.title.toLowerCase().includes(searchQuery.toLowerCase()));
+
+  // 获取特定学校附近的房源
+  const getNearbyHousing = (schoolName: string) => {
+    // 简单的关键词匹配逻辑，例如 "NUS", "NTU", "SMU"
+    const schoolAbbr = schoolName.match(/\((.*?)\)/)?.[1] || schoolName;
+    return HOUSING_MOCK.filter(h => h.distanceToUni.includes(schoolAbbr));
+  };
 
   const renderDashboard = () => (
     <div className="flex flex-col gap-10 animate-fade-in-up">
       <section>
         <div className="mb-6 flex items-center justify-between">
-          <h2 className="font-headline text-2xl font-bold tracking-tight">我的工作区 / Workspace</h2>
+          <h2 className="font-headline text-2xl font-bold tracking-tight text-foreground">我的工作区 / Workspace</h2>
           <Badge variant="secondary" className="rounded-lg">{bookmarkedItems.length} 个已收藏</Badge>
         </div>
         {bookmarkedItems.length > 0 ? (
@@ -123,7 +138,7 @@ export default function AppHome() {
       </section>
 
       <section>
-        <h2 className="mb-6 font-headline text-2xl font-bold tracking-tight">探索中心 / Explore Hub</h2>
+        <h2 className="mb-6 font-headline text-2xl font-bold tracking-tight text-foreground">探索中心 / Explore Hub</h2>
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           <div 
             onClick={() => setActiveModule('advisor')}
@@ -167,6 +182,8 @@ export default function AppHome() {
     const item = selectedItem;
     const module = item.module;
 
+    const nearbyHousing = module === 'schools' ? getNearbyHousing(item.name) : [];
+
     return (
       <div className="animate-fade-in-up space-y-8 pb-12">
         <Button variant="ghost" onClick={goBack} className="flex items-center gap-2 -ml-2 text-muted-foreground hover:text-foreground">
@@ -191,7 +208,7 @@ export default function AppHome() {
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-3">
           <div className="lg:col-span-2 space-y-10">
             <section className="space-y-4">
-              <h2 className="flex items-center gap-2 font-headline text-2xl font-bold">
+              <h2 className="flex items-center gap-2 font-headline text-2xl font-bold text-foreground">
                 <Info className="h-5 w-5 text-primary" /> 项目介绍
               </h2>
               <p className="text-lg leading-relaxed text-muted-foreground">
@@ -201,7 +218,7 @@ export default function AppHome() {
 
             {module === 'housing' && (
               <section className="space-y-4">
-                <h2 className="font-headline text-2xl font-bold">配套设施</h2>
+                <h2 className="font-headline text-2xl font-bold text-foreground">配套设施</h2>
                 <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
                   {item.facilities?.map((f: string) => (
                     <div key={f} className="flex items-center gap-3 rounded-xl border bg-card p-4">
@@ -214,19 +231,57 @@ export default function AppHome() {
             )}
 
             {module === 'schools' && (
-              <section className="space-y-4">
-                <h2 className="font-headline text-2xl font-bold">优势专业</h2>
-                <div className="flex flex-wrap gap-3">
-                  {item.courses?.map((c: string) => (
-                    <Badge key={c} variant="secondary" className="px-4 py-2 text-sm">{c}</Badge>
-                  ))}
-                </div>
-              </section>
+              <>
+                <section className="space-y-4">
+                  <h2 className="font-headline text-2xl font-bold text-foreground">优势专业</h2>
+                  <div className="flex flex-wrap gap-3">
+                    {item.courses?.map((c: string) => (
+                      <Badge key={c} variant="secondary" className="px-4 py-2 text-sm">{c}</Badge>
+                    ))}
+                  </div>
+                </section>
+
+                <section className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <h2 className="flex items-center gap-2 font-headline text-2xl font-bold text-foreground">
+                      <Building className="h-5 w-5 text-primary" /> 周边房源推荐
+                    </h2>
+                    <Button variant="link" onClick={() => {
+                      const schoolAbbr = item.name.match(/\((.*?)\)/)?.[1] || item.name;
+                      setSearchQuery(schoolAbbr);
+                      setActiveModule('housing');
+                      setSelectedItem(null);
+                    }}>
+                      查看更多房源
+                    </Button>
+                  </div>
+                  {nearbyHousing.length > 0 ? (
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                      {nearbyHousing.map((h: Housing) => (
+                        <NotionCard
+                          key={h.id}
+                          title={h.title}
+                          imageUrl={h.imageUrl}
+                          description={`${h.type} | ${h.distanceToUni}`}
+                          isBookmarked={bookmarks.includes(h.id)}
+                          onBookmark={(e) => toggleBookmark(h.id, e)}
+                          onClick={() => handleItemClick(h, 'housing')}
+                          className="h-full"
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="rounded-xl border border-dashed p-8 text-center text-muted-foreground">
+                      该院校周边暂无推荐房源，请稍后再试。
+                    </div>
+                  )}
+                </section>
+              </>
             )}
 
             {module === 'food' && (
               <section className="space-y-4">
-                <h2 className="font-headline text-2xl font-bold">特色推荐</h2>
+                <h2 className="font-headline text-2xl font-bold text-foreground">特色推荐</h2>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   {item.specialties?.map((s: string) => (
                     <div key={s} className="flex items-center gap-3 rounded-xl border bg-card p-4">
@@ -240,7 +295,7 @@ export default function AppHome() {
 
             {module === 'events' && (
               <section className="space-y-4">
-                <h2 className="font-headline text-2xl font-bold">活动流程</h2>
+                <h2 className="font-headline text-2xl font-bold text-foreground">活动流程</h2>
                 <div className="space-y-4">
                   {item.schedule?.map((s: string, idx: number) => (
                     <div key={idx} className="flex gap-4">
@@ -260,7 +315,7 @@ export default function AppHome() {
 
           <aside className="space-y-6">
             <div className="rounded-2xl border bg-card p-6 shadow-sm space-y-6">
-              <h3 className="font-headline text-xl font-bold">关键信息</h3>
+              <h3 className="font-headline text-xl font-bold text-foreground">关键信息</h3>
               
               <div className="space-y-4">
                 <div className="flex items-center justify-between py-2 border-b">
@@ -352,7 +407,7 @@ export default function AppHome() {
                 维
               </div>
               <div className="flex flex-col">
-                <span className="font-headline font-bold leading-none tracking-tight">weijie.sg</span>
+                <span className="font-headline font-bold leading-none tracking-tight text-foreground">weijie.sg</span>
                 <span className="text-[10px] text-muted-foreground uppercase tracking-widest">生活操作系统</span>
               </div>
             </div>
@@ -362,12 +417,12 @@ export default function AppHome() {
               <SidebarGroupLabel className="px-2 pb-2 text-[10px] uppercase tracking-wider font-bold">主要功能</SidebarGroupLabel>
               <SidebarMenu>
                 <SidebarMenuItem>
-                  <SidebarMenuButton isActive={activeModule === 'dashboard'} onClick={() => { setActiveModule('dashboard'); setSelectedItem(null); }} tooltip="控制台">
+                  <SidebarMenuButton isActive={activeModule === 'dashboard'} onClick={() => { setActiveModule('dashboard'); setSelectedItem(null); setSearchQuery(''); }} tooltip="控制台">
                     <LayoutDashboard /> <span>主控制台</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <SidebarMenuButton isActive={activeModule === 'advisor'} onClick={() => { setActiveModule('advisor'); setSelectedItem(null); }} tooltip="AI助手">
+                  <SidebarMenuButton isActive={activeModule === 'advisor'} onClick={() => { setActiveModule('advisor'); setSelectedItem(null); setSearchQuery(''); }} tooltip="AI助手">
                     <Sparkles /> <span>落户助手</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -377,22 +432,22 @@ export default function AppHome() {
               <SidebarGroupLabel className="px-2 pb-2 text-[10px] uppercase tracking-wider font-bold">生活模块</SidebarGroupLabel>
               <SidebarMenu>
                 <SidebarMenuItem>
-                  <SidebarMenuButton isActive={activeModule === 'housing'} onClick={() => { setActiveModule('housing'); setSelectedItem(null); }} tooltip="房源">
+                  <SidebarMenuButton isActive={activeModule === 'housing'} onClick={() => { setActiveModule('housing'); setSelectedItem(null); setSearchQuery(''); }} tooltip="房源">
                     <HomeIcon /> <span>房源中心</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <SidebarMenuButton isActive={activeModule === 'schools'} onClick={() => { setActiveModule('schools'); setSelectedItem(null); }} tooltip="学校">
+                  <SidebarMenuButton isActive={activeModule === 'schools'} onClick={() => { setActiveModule('schools'); setSelectedItem(null); setSearchQuery(''); }} tooltip="学校">
                     <GraduationCap /> <span>院校指南</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <SidebarMenuButton isActive={activeModule === 'food'} onClick={() => { setActiveModule('food'); setSelectedItem(null); }} tooltip="美食">
+                  <SidebarMenuButton isActive={activeModule === 'food'} onClick={() => { setActiveModule('food'); setSelectedItem(null); setSearchQuery(''); }} tooltip="美食">
                     <Utensils /> <span>美食地图</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <SidebarMenuButton isActive={activeModule === 'events'} onClick={() => { setActiveModule('events'); setSelectedItem(null); }} tooltip="活动">
+                  <SidebarMenuButton isActive={activeModule === 'events'} onClick={() => { setActiveModule('events'); setSelectedItem(null); setSearchQuery(''); }} tooltip="活动">
                     <Calendar /> <span>活动中心</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -424,7 +479,7 @@ export default function AppHome() {
             <div className="relative w-72">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                placeholder="搜索资源..."
+                placeholder="搜索标题、学校或地点..."
                 className="h-9 rounded-full bg-muted/50 pl-10 focus-visible:ring-primary/20"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -446,8 +501,10 @@ export default function AppHome() {
             {activeModule === 'housing' && (
               <div className="animate-fade-in-up space-y-8">
                 <div className="flex flex-col gap-2">
-                  <h1 className="font-headline text-3xl font-bold">新加坡房源库</h1>
-                  <p className="text-muted-foreground">精选靠近校园、环境优美的留学生友好公寓。</p>
+                  <h1 className="font-headline text-3xl font-bold text-foreground">新加坡房源库</h1>
+                  <p className="text-muted-foreground">
+                    {searchQuery ? `正在搜索 "${searchQuery}" 附近的房源...` : "精选靠近校园、环境优美的留学生友好公寓。"}
+                  </p>
                 </div>
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                   {filteredHousing.map(h => (
@@ -468,6 +525,11 @@ export default function AppHome() {
                       }
                     />
                   ))}
+                  {filteredHousing.length === 0 && (
+                    <div className="col-span-full py-20 text-center">
+                      <p className="text-muted-foreground">没有找到匹配的房源，尝试搜索其他学校名称？</p>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -475,7 +537,7 @@ export default function AppHome() {
             {activeModule === 'schools' && (
               <div className="animate-fade-in-up space-y-8">
                 <div className="flex flex-col gap-2">
-                  <h1 className="font-headline text-3xl font-bold">院校信息中心</h1>
+                  <h1 className="font-headline text-3xl font-bold text-foreground">院校信息中心</h1>
                   <p className="text-muted-foreground">新加坡顶尖大学的申请指南、排名及国际学生服务。</p>
                 </div>
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -505,7 +567,7 @@ export default function AppHome() {
             {activeModule === 'food' && (
               <div className="animate-fade-in-up space-y-8">
                 <div className="flex flex-col gap-2">
-                  <h1 className="font-headline text-3xl font-bold">美食侦查员</h1>
+                  <h1 className="font-headline text-3xl font-bold text-foreground">美食侦查员</h1>
                   <p className="text-muted-foreground">最懂中国胃的新加坡美食地图。</p>
                 </div>
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -538,7 +600,7 @@ export default function AppHome() {
             {activeModule === 'events' && (
               <div className="animate-fade-in-up space-y-8">
                 <div className="flex flex-col gap-2">
-                  <h1 className="font-headline text-3xl font-bold">社群活动日程</h1>
+                  <h1 className="font-headline text-3xl font-bold text-foreground">社群活动日程</h1>
                   <p className="text-muted-foreground">实时更新的留学生线上线下社群活动。</p>
                 </div>
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
