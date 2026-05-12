@@ -20,7 +20,7 @@ export function SettleAdvisor() {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
-      content: '你好！我是维界 AI 助手。我可以帮你解答关于新加坡银行开户、交通卡办理、留学签转换等任何生活问题。你今天想了解什么？'
+      content: '你好！我是维界 AI 助手。我可以帮你解答关于新加坡银行开户、交通卡办理、留学签转换、租房注意事项等任何生活问题。你今天想了解什么？'
     }
   ]);
 
@@ -94,7 +94,7 @@ export function SettleAdvisor() {
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="询问关于银行开户、EZ-Link、电话卡..."
+            placeholder="询问关于银行开户、EZ-Link、电话卡、学生签证..."
             className="border-none bg-transparent focus-visible:ring-0 shadow-none text-base"
           />
           <Button type="submit" size="icon" disabled={loading} className="rounded-xl">

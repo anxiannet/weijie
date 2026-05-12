@@ -22,17 +22,24 @@ import { Input } from '@/components/ui/input';
 import { NotionCard } from '@/components/NotionCard';
 import { SettleAdvisor } from '@/components/SettleAdvisor';
 import { HOUSING_MOCK, SCHOOLS_MOCK, FOOD_MOCK, EVENTS_MOCK } from '@/app/lib/mock-data';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 
 type Module = 'dashboard' | 'housing' | 'schools' | 'food' | 'events' | 'advisor';
+
+const MODULE_NAMES: Record<Module, string> = {
+  dashboard: '主控制台',
+  housing: '房源中心',
+  schools: '院校指南',
+  food: '美食地图',
+  events: '活动日程',
+  advisor: '智能助手'
+};
 
 export default function AppHome() {
   const [activeModule, setActiveModule] = useState<Module>('dashboard');
   const [bookmarks, setBookmarks] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Hydration handling for bookmarks
   useEffect(() => {
     const saved = localStorage.getItem('weijie_bookmarks');
     if (saved) setBookmarks(JSON.parse(saved));
@@ -78,7 +85,7 @@ export default function AppHome() {
                 description={item.location || item.description}
                 isBookmarked={true}
                 onBookmark={(e) => toggleBookmark(item.id, e)}
-                badge={item.module.toUpperCase()}
+                badge={MODULE_NAMES[item.module as Module]}
               />
             ))}
           </div>
@@ -143,54 +150,54 @@ export default function AppHome() {
               </div>
               <div className="flex flex-col">
                 <span className="font-headline font-bold leading-none tracking-tight">weijie.sg</span>
-                <span className="text-[10px] text-muted-foreground uppercase tracking-widest">Life OS</span>
+                <span className="text-[10px] text-muted-foreground uppercase tracking-widest">生活操作系统</span>
               </div>
             </div>
           </SidebarHeader>
           <SidebarContent className="p-4">
             <SidebarGroup>
-              <SidebarGroupLabel className="px-2 pb-2 text-[10px] uppercase tracking-wider font-bold">Main Console</SidebarGroupLabel>
+              <SidebarGroupLabel className="px-2 pb-2 text-[10px] uppercase tracking-wider font-bold">主要功能</SidebarGroupLabel>
               <SidebarMenu>
                 <SidebarMenuItem>
                   <SidebarMenuButton isActive={activeModule === 'dashboard'} onClick={() => setActiveModule('dashboard')} tooltip="控制台">
-                    <LayoutDashboard /> <span>主控制台 Dashboard</span>
+                    <LayoutDashboard /> <span>主控制台</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
                   <SidebarMenuButton isActive={activeModule === 'advisor'} onClick={() => setActiveModule('advisor')} tooltip="AI助手">
-                    <Sparkles /> <span>落户助手 Advisor</span>
+                    <Sparkles /> <span>落户助手</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               </SidebarMenu>
             </SidebarGroup>
             <SidebarGroup className="mt-4">
-              <SidebarGroupLabel className="px-2 pb-2 text-[10px] uppercase tracking-wider font-bold">Life Modules</SidebarGroupLabel>
+              <SidebarGroupLabel className="px-2 pb-2 text-[10px] uppercase tracking-wider font-bold">生活模块</SidebarGroupLabel>
               <SidebarMenu>
                 <SidebarMenuItem>
                   <SidebarMenuButton isActive={activeModule === 'housing'} onClick={() => setActiveModule('housing')} tooltip="房源">
-                    <HomeIcon /> <span>我的房源 Housing</span>
+                    <HomeIcon /> <span>房源中心</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
                   <SidebarMenuButton isActive={activeModule === 'schools'} onClick={() => setActiveModule('schools')} tooltip="学校">
-                    <GraduationCap /> <span>目标院校 Schools</span>
+                    <GraduationCap /> <span>院校指南</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
                   <SidebarMenuButton isActive={activeModule === 'food'} onClick={() => setActiveModule('food')} tooltip="美食">
-                    <Utensils /> <span>美食地图 Gourmet</span>
+                    <Utensils /> <span>美食地图</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
                   <SidebarMenuButton isActive={activeModule === 'events'} onClick={() => setActiveModule('events')} tooltip="活动">
-                    <Calendar /> <span>活动中心 Events</span>
+                    <Calendar /> <span>活动中心</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               </SidebarMenu>
             </SidebarGroup>
           </SidebarContent>
           <SidebarFooter className="border-t p-4 text-[10px] text-muted-foreground text-center">
-            &copy; 2024 weijie.sg. All rights reserved.
+            &copy; 2024 weijie.sg. 版权所有
           </SidebarFooter>
         </Sidebar>
 
@@ -200,9 +207,9 @@ export default function AppHome() {
               <SidebarTrigger />
               <div className="h-4 w-[1px] bg-border" />
               <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                <span>WeiJie</span>
+                <span>维界</span>
                 <ChevronRight className="h-4 w-4" />
-                <span className="text-foreground capitalize">{activeModule}</span>
+                <span className="text-foreground">{MODULE_NAMES[activeModule]}</span>
               </div>
             </div>
             <div className="relative w-72">
@@ -228,7 +235,7 @@ export default function AppHome() {
             {activeModule === 'housing' && (
               <div className="animate-fade-in-up space-y-8">
                 <div className="flex flex-col gap-2">
-                  <h1 className="font-headline text-3xl font-bold">新加坡房源库 / Housing Directory</h1>
+                  <h1 className="font-headline text-3xl font-bold">新加坡房源库</h1>
                   <p className="text-muted-foreground">精选靠近校园、环境优美的留学生友好公寓。</p>
                 </div>
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -244,7 +251,7 @@ export default function AppHome() {
                       footer={
                         <div className="flex items-center justify-between">
                           <span className="font-bold text-primary">S${h.price} /月</span>
-                          <span className="text-xs text-muted-foreground">最近浏览 2h前</span>
+                          <span className="text-xs text-muted-foreground">最近更新 2h前</span>
                         </div>
                       }
                     />
@@ -256,7 +263,7 @@ export default function AppHome() {
             {activeModule === 'schools' && (
               <div className="animate-fade-in-up space-y-8">
                 <div className="flex flex-col gap-2">
-                  <h1 className="font-headline text-3xl font-bold">院校信息中心 / Education Hub</h1>
+                  <h1 className="font-headline text-3xl font-bold">院校信息中心</h1>
                   <p className="text-muted-foreground">新加坡顶尖大学的申请指南、排名及国际学生服务。</p>
                 </div>
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -285,7 +292,7 @@ export default function AppHome() {
             {activeModule === 'food' && (
               <div className="animate-fade-in-up space-y-8">
                 <div className="flex flex-col gap-2">
-                  <h1 className="font-headline text-3xl font-bold">美食侦查员 / Gourmet Scout</h1>
+                  <h1 className="font-headline text-3xl font-bold">美食侦查员</h1>
                   <p className="text-muted-foreground">最懂中国胃的新加坡美食地图。</p>
                 </div>
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -317,7 +324,7 @@ export default function AppHome() {
             {activeModule === 'events' && (
               <div className="animate-fade-in-up space-y-8">
                 <div className="flex flex-col gap-2">
-                  <h1 className="font-headline text-3xl font-bold">社群活动日程 / Event Horizon</h1>
+                  <h1 className="font-headline text-3xl font-bold">社群活动日程</h1>
                   <p className="text-muted-foreground">实时更新的留学生线上线下社群活动。</p>
                 </div>
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -336,7 +343,7 @@ export default function AppHome() {
                             <div className="flex items-center gap-1"><Users className="h-3 w-3" /> {e.attendees}人报名</div>
                           </div>
                           <button className="w-full rounded-lg bg-accent py-2 text-xs font-bold text-accent-foreground transition-all hover:bg-accent/90">
-                            立即 RSVP
+                            立即报名 RSVP
                           </button>
                         </div>
                       }
