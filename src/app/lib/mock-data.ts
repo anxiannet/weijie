@@ -1,3 +1,4 @@
+
 import { PlaceHolderImages } from './placeholder-images';
 
 export type Housing = {
@@ -22,6 +23,7 @@ export type School = {
   imageUrl: string;
   website: string;
   courses: string[];
+  type: 'University' | 'Polytechnic' | 'Private';
 };
 
 export type Food = {
@@ -120,7 +122,8 @@ export const SCHOOLS_MOCK: School[] = [
     services: ['新生入营', '签证支持', '校友网络'], 
     imageUrl: PlaceHolderImages.find(p => p.id === 's-1')?.imageUrl || 'https://picsum.photos/seed/s1/800/600',
     website: 'https://www.nus.edu.sg',
-    courses: ['计算机科学', '工商管理', '土木工程', '法学', '医学']
+    courses: ['计算机科学', '工商管理', '土木工程', '法学', '医学'],
+    type: 'University'
   },
   { 
     id: 's2', 
@@ -130,7 +133,8 @@ export const SCHOOLS_MOCK: School[] = [
     services: ['职业中心', '心理健康', '宿舍办公室'], 
     imageUrl: PlaceHolderImages.find(p => p.id === 's-2')?.imageUrl || 'https://picsum.photos/seed/s2/800/600',
     website: 'https://www.ntu.edu.sg',
-    courses: ['工程学', '传媒学', '会计学', '环境科学']
+    courses: ['工程学', '传媒学', '会计学', '环境科学'],
+    type: 'University'
   },
   { 
     id: 's3', 
@@ -140,7 +144,129 @@ export const SCHOOLS_MOCK: School[] = [
     services: ['全球交换', '孵化实验室', '学术咨询'], 
     imageUrl: PlaceHolderImages.find(p => p.id === 's-3')?.imageUrl || 'https://picsum.photos/seed/s3/800/600',
     website: 'https://www.smu.edu.sg',
-    courses: ['金融学', '经济学', '信息系统', '社会科学']
+    courses: ['金融学', '经济学', '信息系统', '社会科学'],
+    type: 'University'
+  },
+  { 
+    id: 's4', 
+    name: '新加坡科技设计大学 (SUTD)', 
+    description: '与MIT合作建立，注重多学科设计和工程教育，是新加坡最年轻的公立大学之一。', 
+    rank: '世界级新兴大学', 
+    services: ['创新创业计划', '跨学科研究', '设计中心'], 
+    imageUrl: PlaceHolderImages.find(p => p.id === 's-4')?.imageUrl || 'https://picsum.photos/seed/s4/800/600',
+    website: 'https://www.sutd.edu.sg',
+    courses: ['建筑与可持续设计', '工程产品开发', '信息系统技术与设计'],
+    type: 'University'
+  },
+  { 
+    id: 's5', 
+    name: '新加坡理工大学 (SIT)', 
+    description: '注重应用学习的公立大学，与行业紧密结合，为学生提供独特的一体化工作学习计划。', 
+    rank: '领先的应用大学', 
+    services: ['行业实习', '职业技能提升', '产学研合作'], 
+    imageUrl: PlaceHolderImages.find(p => p.id === 's-5')?.imageUrl || 'https://picsum.photos/seed/s5/800/600',
+    website: 'https://www.singaporetech.edu.sg',
+    courses: ['护理学', '物理治疗', '食品技术', '网络安全'],
+    type: 'University'
+  },
+  { 
+    id: 's6', 
+    name: '新加坡新跃社科大学 (SUSS)', 
+    description: '专注于社会科学的公立大学，致力于终身学习，为成人学习者和学生提供灵活的课程。', 
+    rank: '社会科学先锋', 
+    services: ['终身学习支持', '社区服务', '灵活学习方案'], 
+    imageUrl: PlaceHolderImages.find(p => p.id === 's-6')?.imageUrl || 'https://picsum.photos/seed/s6/800/600',
+    website: 'https://www.suss.edu.sg',
+    courses: ['社会工作', '心理学', '幼儿教育', '人力资源管理'],
+    type: 'University'
+  },
+  { 
+    id: 's-sim', 
+    name: 'SIM 全球教育', 
+    description: '新加坡领先的私立教育学院，与伦敦大学、伯明翰大学等全球顶尖名校合作办学。', 
+    rank: '新加坡顶级私校', 
+    services: ['全球名校对接', '海外交流', '学生社团'], 
+    imageUrl: PlaceHolderImages.find(p => p.id === 's-sim')?.imageUrl || 'https://picsum.photos/seed/ssim/800/600',
+    website: 'https://www.simge.edu.sg',
+    courses: ['金融与会计', '管理研究', '计算机信息系统'],
+    type: 'Private'
+  },
+  { 
+    id: 's-jcu', 
+    name: '詹姆斯库克大学新加坡校区 (JCU)', 
+    description: '澳洲名校直属校区，是新加坡第一所获得 EduTrust Star 认证的私立学院。', 
+    rank: '澳洲直属校区', 
+    services: ['校际转换', '心理咨询', '英语强化'], 
+    imageUrl: 'https://picsum.photos/seed/sjcu/800/600',
+    website: 'https://www.jcu.edu.sg',
+    courses: ['商业管理', '环境科学', '信息技术'],
+    type: 'Private'
+  },
+  { 
+    id: 's-kaplan', 
+    name: 'Kaplan 新加坡', 
+    description: '全球知名的教育集团，提供多元化的学术课程，校园位于新加坡市中心。', 
+    rank: '职业教育领导者', 
+    services: ['就业指导', '灵活排课', '线上资源'], 
+    imageUrl: 'https://picsum.photos/seed/skaplan/800/600',
+    website: 'https://www.kaplan.com.sg',
+    courses: ['大众传媒', '物流管理', '市场营销'],
+    type: 'Private'
+  },
+  { 
+    id: 's-sp', 
+    name: '新加坡理工学院 (SP)', 
+    description: '新加坡第一所理工学院，拥有悠久的历史和极高的行业认可度。', 
+    rank: '第一理工学院', 
+    services: ['行业实习', '技术中心', '学生福利'], 
+    imageUrl: PlaceHolderImages.find(p => p.id === 's-poly')?.imageUrl || 'https://picsum.photos/seed/spoly/800/600',
+    website: 'https://www.sp.edu.sg',
+    courses: ['海事工程', '航空航天技术', '多媒体设计'],
+    type: 'Polytechnic'
+  },
+  { 
+    id: 's-np', 
+    name: '义安理工学院 (NP)', 
+    description: '以商科和传媒专业闻名，注重培养学生的创新精神。', 
+    rank: '商科传媒强校', 
+    services: ['海外浸入式项目', '企业孵化', '奖学金'], 
+    imageUrl: 'https://picsum.photos/seed/snp/800/600',
+    website: 'https://www.np.edu.sg',
+    courses: ['大众传媒', '商业管理', '健康科学'],
+    type: 'Polytechnic'
+  },
+  { 
+    id: 's-tp', 
+    name: '淡马锡理工学院 (TP)', 
+    description: '设计专业在本地名声显赫，校园环境现代化。', 
+    rank: '设计教育先驱', 
+    services: ['设计工作室', '行业项目', '社区服务'], 
+    imageUrl: 'https://picsum.photos/seed/stp/800/600',
+    website: 'https://www.tp.edu.sg',
+    courses: ['服装设计', '互动设计', '烹饪科学'],
+    type: 'Polytechnic'
+  },
+  { 
+    id: 's-nyp', 
+    name: '南洋理工学院 (NYP)', 
+    description: '在IT和工程领域有着非常紧密的校企合作。', 
+    rank: '技术教育领先', 
+    services: ['专业技能认证', '实习安置', '校友会'], 
+    imageUrl: 'https://picsum.photos/seed/snyp/800/600',
+    website: 'https://www.nyp.edu.sg',
+    courses: ['信息技术', '数码动画', '护理学'],
+    type: 'Polytechnic'
+  },
+  { 
+    id: 's-rp', 
+    name: '共和理工学院 (RP)', 
+    description: '全面推行“问题导向学习”(PBL)教学法，注重培养学生解决实际问题的能力。', 
+    rank: 'PBL 教学先锋', 
+    services: ['学生导师', '心理素质建设', '户外学习'], 
+    imageUrl: 'https://picsum.photos/seed/srp/800/600',
+    website: 'https://www.rp.edu.sg',
+    courses: ['运动科学', '艺术管理', '可再生能源'],
+    type: 'Polytechnic'
   },
 ];
 

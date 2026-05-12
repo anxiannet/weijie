@@ -50,6 +50,36 @@
       "imageHint": "city university"
     },
     {
+      "id": "s-4",
+      "description": "Singapore University of Technology and Design (SUTD)",
+      "imageUrl": "https://picsum.photos/seed/s4/800/600",
+      "imageHint": "tech campus"
+    },
+    {
+      "id": "s-5",
+      "description": "Singapore Institute of Technology (SIT)",
+      "imageUrl": "https://picsum.photos/seed/s5/800/600",
+      "imageHint": "industry university"
+    },
+    {
+      "id": "s-6",
+      "description": "Singapore University of Social Sciences (SUSS)",
+      "imageUrl": "https://picsum.photos/seed/s6/800/600",
+      "imageHint": "social science"
+    },
+    {
+      "id": "s-sim",
+      "description": "SIM Global Education",
+      "imageUrl": "https://picsum.photos/seed/ssim/800/600",
+      "imageHint": "private college"
+    },
+    {
+      "id": "s-poly",
+      "description": "Singapore Polytechnic",
+      "imageUrl": "https://picsum.photos/seed/spoly/800/600",
+      "imageHint": "polytechnic campus"
+    },
+    {
       "id": "f-1",
       "description": "Haidilao Hot Pot",
       "imageUrl": "https://picsum.photos/seed/f1/800/600",
