@@ -239,12 +239,56 @@ export const SCHOOLS_MOCK: School[] = [
   { 
     id: 's-sp', 
     name: '新加坡理工学院 (SP)', 
-    description: '新加坡第一所理工学院，拥有悠久的历史和极高的行业认可度。', 
-    rank: '第一理工学院', 
-    services: ['行业实习', '技术中心', '学生福利'], 
+    description: '新加坡第一所理工学院，拥有悠久的历史和极高的行业认可度。',
+    rank: '五所政府理工学院之一',
+    services: ['行业实习', '技术中心', '学生福利'],
     imageUrl: PlaceHolderImages.find(p => p.id === 's-poly')?.imageUrl || 'https://picsum.photos/seed/spoly/800/600',
     website: 'https://www.sp.edu.sg',
     courses: ['海事工程', '航空航天技术', '多媒体设计'],
+    type: 'Polytechnic'
+  },
+  {
+    id: 's-np',
+    name: '义安理工学院 (NP)',
+    description: '以实践导向和创新创业氛围著称，校园位于金文泰一带，商科、传媒与信息技术课程深受学生欢迎。',
+    rank: '五所政府理工学院之一',
+    services: ['学生发展', '海外浸濡', '就业辅导'],
+    imageUrl: PlaceHolderImages.find(p => p.id === 's-np')?.imageUrl || 'https://picsum.photos/seed/np-poly/800/600',
+    website: 'https://www.np.edu.sg',
+    courses: ['商业研究', '大众传播', '数据科学', '生命科学'],
+    type: 'Polytechnic'
+  },
+  {
+    id: 's-nyp',
+    name: '南洋理工学院 (NYP)',
+    description: '位于宏茂桥，强调科技、设计与健康科学等应用型教育，拥有完善的实验室和行业项目资源。',
+    rank: '五所政府理工学院之一',
+    services: ['应用项目', '职业准备', '学生关怀'],
+    imageUrl: PlaceHolderImages.find(p => p.id === 's-nyp')?.imageUrl || 'https://picsum.photos/seed/nyp-poly/800/600',
+    website: 'https://www.nyp.edu.sg',
+    courses: ['信息技术', '工程学', '护理学', '动画与游戏设计'],
+    type: 'Polytechnic'
+  },
+  {
+    id: 's-tp',
+    name: '淡马锡理工学院 (TP)',
+    description: '坐落在淡滨尼，课程覆盖商科、设计、工程、应用科学与信息技术，重视真实项目和行业链接。',
+    rank: '五所政府理工学院之一',
+    services: ['行业导师', '校园社团', '实习支持'],
+    imageUrl: PlaceHolderImages.find(p => p.id === 's-tp')?.imageUrl || 'https://picsum.photos/seed/tp-poly/800/600',
+    website: 'https://www.tp.edu.sg',
+    courses: ['航空管理', '设计', '网络安全', '心理学研究'],
+    type: 'Polytechnic'
+  },
+  {
+    id: 's-rp',
+    name: '共和理工学院 (RP)',
+    description: '位于兀兰，以问题导向学习模式闻名，适合希望通过团队讨论与真实案例提升实践能力的学生。',
+    rank: '五所政府理工学院之一',
+    services: ['问题导向学习', '体育设施', '继续教育'],
+    imageUrl: PlaceHolderImages.find(p => p.id === 's-rp')?.imageUrl || 'https://picsum.photos/seed/rp-poly/800/600',
+    website: 'https://www.rp.edu.sg',
+    courses: ['体育与健康', '酒店管理', '媒体制作', '供应链管理'],
     type: 'Polytechnic'
   },
 ];

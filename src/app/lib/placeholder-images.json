@@ -80,6 +80,30 @@
       "imageHint": "polytechnic campus"
     },
     {
+      "id": "s-np",
+      "description": "Ngee Ann Polytechnic",
+      "imageUrl": "https://picsum.photos/seed/np-poly/800/600",
+      "imageHint": "polytechnic campus"
+    },
+    {
+      "id": "s-nyp",
+      "description": "Nanyang Polytechnic",
+      "imageUrl": "https://picsum.photos/seed/nyp-poly/800/600",
+      "imageHint": "polytechnic campus"
+    },
+    {
+      "id": "s-tp",
+      "description": "Temasek Polytechnic",
+      "imageUrl": "https://picsum.photos/seed/tp-poly/800/600",
+      "imageHint": "polytechnic campus"
+    },
+    {
+      "id": "s-rp",
+      "description": "Republic Polytechnic",
+      "imageUrl": "https://picsum.photos/seed/rp-poly/800/600",
+      "imageHint": "polytechnic campus"
+    },
+    {
       "id": "s-nafa",
       "description": "Nanyang Academy of Fine Arts (NAFA)",
       "imageUrl": "https://picsum.photos/seed/nafa/800/600",
