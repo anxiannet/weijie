@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -15,7 +14,12 @@ import {
   MapPin,
   Clock,
   Star,
-  Users
+  Users,
+  ArrowLeft,
+  ExternalLink,
+  Phone,
+  Info,
+  Globe
 } from 'lucide-react';
 import { SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter, SidebarGroup, SidebarGroupLabel, SidebarTrigger } from '@/components/ui/sidebar';
 import { Input } from '@/components/ui/input';
@@ -23,8 +27,10 @@ import { NotionCard } from '@/components/NotionCard';
 import { SettleAdvisor } from '@/components/SettleAdvisor';
 import { HOUSING_MOCK, SCHOOLS_MOCK, FOOD_MOCK, EVENTS_MOCK } from '@/app/lib/mock-data';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import Image from 'next/image';
 
-type Module = 'dashboard' | 'housing' | 'schools' | 'food' | 'events' | 'advisor';
+type Module = 'dashboard' | 'housing' | 'schools' | 'food' | 'events' | 'advisor' | 'detail';
 
 const MODULE_NAMES: Record<Module, string> = {
   dashboard: '主控制台',
@@ -32,13 +38,15 @@ const MODULE_NAMES: Record<Module, string> = {
   schools: '院校指南',
   food: '美食地图',
   events: '活动日程',
-  advisor: '智能助手'
+  advisor: '智能助手',
+  detail: '详情查看'
 };
 
 export default function AppHome() {
   const [activeModule, setActiveModule] = useState<Module>('dashboard');
   const [bookmarks, setBookmarks] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedItem, setSelectedItem] = useState<any>(null);
 
   useEffect(() => {
     const saved = localStorage.getItem('weijie_bookmarks');
@@ -52,6 +60,20 @@ export default function AppHome() {
       localStorage.setItem('weijie_bookmarks', JSON.stringify(next));
       return next;
     });
+  };
+
+  const handleItemClick = (item: any, module: string) => {
+    setSelectedItem({ ...item, module });
+    setActiveModule('detail');
+  };
+
+  const goBack = () => {
+    if (selectedItem?.module) {
+      setActiveModule(selectedItem.module as Module);
+    } else {
+      setActiveModule('dashboard');
+    }
+    setSelectedItem(null);
   };
 
   const allItems = [
@@ -86,6 +108,7 @@ export default function AppHome() {
                 isBookmarked={true}
                 onBookmark={(e) => toggleBookmark(item.id, e)}
                 badge={MODULE_NAMES[item.module as Module]}
+                onClick={() => handleItemClick(item, item.module)}
               />
             ))}
           </div>
@@ -139,6 +162,186 @@ export default function AppHome() {
     </div>
   );
 
+  const renderDetail = () => {
+    if (!selectedItem) return null;
+    const item = selectedItem;
+    const module = item.module;
+
+    return (
+      <div className="animate-fade-in-up space-y-8 pb-12">
+        <Button variant="ghost" onClick={goBack} className="flex items-center gap-2 -ml-2 text-muted-foreground hover:text-foreground">
+          <ArrowLeft className="h-4 w-4" /> 返回上一级
+        </Button>
+
+        <div className="relative aspect-[21/9] w-full overflow-hidden rounded-3xl border shadow-xl">
+          <Image 
+            src={item.imageUrl} 
+            alt={item.title || item.name} 
+            fill 
+            className="object-cover"
+            sizes="100vw"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+          <div className="absolute bottom-8 left-8 text-white">
+            <Badge className="mb-4 bg-accent/90">{MODULE_NAMES[module as Module]}</Badge>
+            <h1 className="font-headline text-4xl font-bold">{item.title || item.name}</h1>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-12 lg:grid-cols-3">
+          <div className="lg:col-span-2 space-y-10">
+            <section className="space-y-4">
+              <h2 className="flex items-center gap-2 font-headline text-2xl font-bold">
+                <Info className="h-5 w-5 text-primary" /> 项目介绍
+              </h2>
+              <p className="text-lg leading-relaxed text-muted-foreground">
+                {item.description || "暂无详细描述。"}
+              </p>
+            </section>
+
+            {module === 'housing' && (
+              <section className="space-y-4">
+                <h2 className="font-headline text-2xl font-bold">配套设施</h2>
+                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+                  {item.facilities?.map((f: string) => (
+                    <div key={f} className="flex items-center gap-3 rounded-xl border bg-card p-4">
+                      <div className="h-2 w-2 rounded-full bg-accent" />
+                      <span className="text-sm font-medium">{f}</span>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {module === 'schools' && (
+              <section className="space-y-4">
+                <h2 className="font-headline text-2xl font-bold">优势专业</h2>
+                <div className="flex flex-wrap gap-3">
+                  {item.courses?.map((c: string) => (
+                    <Badge key={c} variant="secondary" className="px-4 py-2 text-sm">{c}</Badge>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {module === 'food' && (
+              <section className="space-y-4">
+                <h2 className="font-headline text-2xl font-bold">特色推荐</h2>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  {item.specialties?.map((s: string) => (
+                    <div key={s} className="flex items-center gap-3 rounded-xl border bg-card p-4">
+                      <Utensils className="h-4 w-4 text-orange-500" />
+                      <span className="font-bold">{s}</span>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {module === 'events' && (
+              <section className="space-y-4">
+                <h2 className="font-headline text-2xl font-bold">活动流程</h2>
+                <div className="space-y-4">
+                  {item.schedule?.map((s: string, idx: number) => (
+                    <div key={idx} className="flex gap-4">
+                      <div className="flex flex-col items-center">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-xs">{idx + 1}</div>
+                        {idx !== item.schedule.length - 1 && <div className="w-[2px] flex-1 bg-border" />}
+                      </div>
+                      <div className="pb-6">
+                        <p className="font-medium">{s}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+          </div>
+
+          <aside className="space-y-6">
+            <div className="rounded-2xl border bg-card p-6 shadow-sm space-y-6">
+              <h3 className="font-headline text-xl font-bold">关键信息</h3>
+              
+              <div className="space-y-4">
+                <div className="flex items-center justify-between py-2 border-b">
+                  <span className="text-sm text-muted-foreground flex items-center gap-2"><MapPin className="h-4 w-4" /> 地点</span>
+                  <span className="text-sm font-bold">{item.location}</span>
+                </div>
+                
+                {module === 'housing' && (
+                  <>
+                    <div className="flex items-center justify-between py-2 border-b">
+                      <span className="text-sm text-muted-foreground flex items-center gap-2"><Clock className="h-4 w-4" /> 距离</span>
+                      <span className="text-sm font-bold">{item.distanceToUni}</span>
+                    </div>
+                    <div className="flex items-center justify-between py-2">
+                      <span className="text-sm text-muted-foreground flex items-center gap-2"><Phone className="h-4 w-4" /> 联系</span>
+                      <span className="text-sm font-bold text-primary underline">{item.contact}</span>
+                    </div>
+                  </>
+                )}
+
+                {module === 'schools' && (
+                  <>
+                    <div className="flex items-center justify-between py-2 border-b">
+                      <span className="text-sm text-muted-foreground flex items-center gap-2"><Star className="h-4 w-4" /> 排名</span>
+                      <span className="text-sm font-bold">{item.rank}</span>
+                    </div>
+                    <div className="flex items-center justify-between py-2">
+                      <span className="text-sm text-muted-foreground flex items-center gap-2"><Globe className="h-4 w-4" /> 官网</span>
+                      <a href={item.website} target="_blank" className="text-sm font-bold text-primary flex items-center gap-1 hover:underline">
+                        访问网站 <ExternalLink className="h-3 w-3" />
+                      </a>
+                    </div>
+                  </>
+                )}
+
+                {module === 'food' && (
+                  <>
+                    <div className="flex items-center justify-between py-2 border-b">
+                      <span className="text-sm text-muted-foreground flex items-center gap-2"><Star className="h-4 w-4" /> 评分</span>
+                      <span className="text-sm font-bold flex items-center gap-1"><Star className="h-3 w-3 fill-yellow-500 text-yellow-500" /> {item.rating}</span>
+                    </div>
+                    <div className="flex items-center justify-between py-2">
+                      <span className="text-sm text-muted-foreground flex items-center gap-2"><Clock className="h-4 w-4" /> 营业时间</span>
+                      <span className="text-sm font-bold">{item.openingHours}</span>
+                    </div>
+                  </>
+                )}
+
+                {module === 'events' && (
+                  <>
+                    <div className="flex items-center justify-between py-2 border-b">
+                      <span className="text-sm text-muted-foreground flex items-center gap-2"><Calendar className="h-4 w-4" /> 日期</span>
+                      <span className="text-sm font-bold">{item.date} {item.time}</span>
+                    </div>
+                    <div className="flex items-center justify-between py-2">
+                      <span className="text-sm text-muted-foreground flex items-center gap-2"><Users className="h-4 w-4" /> 主办方</span>
+                      <span className="text-sm font-bold">{item.organizer}</span>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              <div className="pt-4 flex flex-col gap-3">
+                <Button className="w-full bg-primary hover:bg-primary/90" size="lg">
+                  {module === 'events' ? '立即报名 RSVP' : module === 'housing' ? '预约看房' : '了解更多'}
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="w-full" 
+                  onClick={(e) => toggleBookmark(item.id, e)}
+                >
+                  {bookmarks.includes(item.id) ? '从收藏中移除' : '加入收藏清单'}
+                </Button>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-background">
@@ -159,12 +362,12 @@ export default function AppHome() {
               <SidebarGroupLabel className="px-2 pb-2 text-[10px] uppercase tracking-wider font-bold">主要功能</SidebarGroupLabel>
               <SidebarMenu>
                 <SidebarMenuItem>
-                  <SidebarMenuButton isActive={activeModule === 'dashboard'} onClick={() => setActiveModule('dashboard')} tooltip="控制台">
+                  <SidebarMenuButton isActive={activeModule === 'dashboard'} onClick={() => { setActiveModule('dashboard'); setSelectedItem(null); }} tooltip="控制台">
                     <LayoutDashboard /> <span>主控制台</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <SidebarMenuButton isActive={activeModule === 'advisor'} onClick={() => setActiveModule('advisor')} tooltip="AI助手">
+                  <SidebarMenuButton isActive={activeModule === 'advisor'} onClick={() => { setActiveModule('advisor'); setSelectedItem(null); }} tooltip="AI助手">
                     <Sparkles /> <span>落户助手</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -174,22 +377,22 @@ export default function AppHome() {
               <SidebarGroupLabel className="px-2 pb-2 text-[10px] uppercase tracking-wider font-bold">生活模块</SidebarGroupLabel>
               <SidebarMenu>
                 <SidebarMenuItem>
-                  <SidebarMenuButton isActive={activeModule === 'housing'} onClick={() => setActiveModule('housing')} tooltip="房源">
+                  <SidebarMenuButton isActive={activeModule === 'housing'} onClick={() => { setActiveModule('housing'); setSelectedItem(null); }} tooltip="房源">
                     <HomeIcon /> <span>房源中心</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <SidebarMenuButton isActive={activeModule === 'schools'} onClick={() => setActiveModule('schools')} tooltip="学校">
+                  <SidebarMenuButton isActive={activeModule === 'schools'} onClick={() => { setActiveModule('schools'); setSelectedItem(null); }} tooltip="学校">
                     <GraduationCap /> <span>院校指南</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <SidebarMenuButton isActive={activeModule === 'food'} onClick={() => setActiveModule('food')} tooltip="美食">
+                  <SidebarMenuButton isActive={activeModule === 'food'} onClick={() => { setActiveModule('food'); setSelectedItem(null); }} tooltip="美食">
                     <Utensils /> <span>美食地图</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <SidebarMenuButton isActive={activeModule === 'events'} onClick={() => setActiveModule('events')} tooltip="活动">
+                  <SidebarMenuButton isActive={activeModule === 'events'} onClick={() => { setActiveModule('events'); setSelectedItem(null); }} tooltip="活动">
                     <Calendar /> <span>活动中心</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -210,6 +413,12 @@ export default function AppHome() {
                 <span>维界</span>
                 <ChevronRight className="h-4 w-4" />
                 <span className="text-foreground">{MODULE_NAMES[activeModule]}</span>
+                {selectedItem && (
+                  <>
+                    <ChevronRight className="h-4 w-4" />
+                    <span className="text-foreground truncate max-w-[150px]">{selectedItem.title || selectedItem.name}</span>
+                  </>
+                )}
               </div>
             </div>
             <div className="relative w-72">
@@ -232,6 +441,8 @@ export default function AppHome() {
               </div>
             )}
 
+            {activeModule === 'detail' && renderDetail()}
+
             {activeModule === 'housing' && (
               <div className="animate-fade-in-up space-y-8">
                 <div className="flex flex-col gap-2">
@@ -248,6 +459,7 @@ export default function AppHome() {
                       isBookmarked={bookmarks.includes(h.id)}
                       onBookmark={(e) => toggleBookmark(h.id, e)}
                       badge={h.distanceToUni}
+                      onClick={() => handleItemClick(h, 'housing')}
                       footer={
                         <div className="flex items-center justify-between">
                           <span className="font-bold text-primary">S${h.price} /月</span>
@@ -276,6 +488,7 @@ export default function AppHome() {
                       isBookmarked={bookmarks.includes(s.id)}
                       onBookmark={(e) => toggleBookmark(s.id, e)}
                       badge={s.rank}
+                      onClick={() => handleItemClick(s, 'schools')}
                       footer={
                         <div className="flex flex-wrap gap-2">
                           {s.services.map(svc => (
@@ -305,6 +518,7 @@ export default function AppHome() {
                       isBookmarked={bookmarks.includes(f.id)}
                       onBookmark={(e) => toggleBookmark(f.id, e)}
                       badge={f.priceRange}
+                      onClick={() => handleItemClick(f, 'food')}
                       footer={
                         <div className="flex items-center justify-between text-sm">
                           <div className="flex items-center gap-1 text-muted-foreground">
@@ -336,6 +550,7 @@ export default function AppHome() {
                       description={`${e.date} ${e.time}`}
                       isBookmarked={bookmarks.includes(e.id)}
                       onBookmark={(e) => toggleBookmark(e.id, e)}
+                      onClick={() => handleItemClick(e, 'events')}
                       footer={
                         <div className="flex flex-col gap-3">
                           <div className="flex items-center justify-between text-xs text-muted-foreground">
