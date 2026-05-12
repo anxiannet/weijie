@@ -92,6 +92,12 @@
       "imageHint": "modern campus"
     },
     {
+      "id": "s-psb",
+      "description": "PSB Academy",
+      "imageUrl": "https://picsum.photos/seed/psb/800/600",
+      "imageHint": "modern school"
+    },
+    {
       "id": "f-1",
       "description": "Haidilao Hot Pot",
       "imageUrl": "https://picsum.photos/seed/f1/800/600",

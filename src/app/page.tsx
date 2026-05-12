@@ -46,7 +46,7 @@ const MODULE_NAMES: Record<Module, string> = {
   detail: '详情查看'
 };
 
-const QUICK_SCHOOLS = ['NUS', 'NTU', 'SMU', 'SUTD', 'SIT', 'SUSS', 'NAFA', 'MDIS'];
+const QUICK_SCHOOLS = ['NUS', 'NTU', 'SMU', 'SUTD', 'SIT', 'SUSS', 'NAFA', 'MDIS', 'PSB'];
 
 export default function AppHome() {
   const [activeModule, setActiveModule] = useState<Module>('dashboard');

@@ -80,7 +80,7 @@ export const HOUSING_MOCK: Housing[] = [
     title: '高品质联名空间', 
     price: 1500, 
     location: '欧南园 (Outram Park)', 
-    distanceToUni: '地铁 15 分钟至 SMU/NAFA', 
+    distanceToUni: '地铁 15 分钟至 SMU/NAFA/PSB', 
     type: '普通房', 
     imageUrl: PlaceHolderImages.find(p => p.id === 'h-3')?.imageUrl || 'https://picsum.photos/seed/h3/800/600',
     description: '与志同道合的小伙伴共同生活，共享超大客厅和多功能休息室，定期举办社交活动。',
@@ -104,7 +104,7 @@ export const HOUSING_MOCK: Housing[] = [
     title: '天际线景观住宅', 
     price: 2500, 
     location: '滨海湾 (Marina Bay)', 
-    distanceToUni: '地铁 20 分钟至 NUS', 
+    distanceToUni: '地铁 10 分钟至 PSB/SMU', 
     type: '整套出租', 
     imageUrl: PlaceHolderImages.find(p => p.id === 'h-5')?.imageUrl || 'https://picsum.photos/seed/h5/800/600',
     description: '顶级景观，落地窗直面金沙酒店，适合预算充裕的高端商务学生。',
@@ -212,6 +212,17 @@ export const SCHOOLS_MOCK: School[] = [
     imageUrl: PlaceHolderImages.find(p => p.id === 's-mdis')?.imageUrl || 'https://picsum.photos/seed/mdis/800/600',
     website: 'https://www.mdis.edu.sg',
     courses: ['工商管理', '传媒学', '生命科学', '时尚设计'],
+    type: 'Private'
+  },
+  { 
+    id: 's-psb', 
+    name: 'PSB Academy (PSB)', 
+    description: '被誉为“未来学院”，是新加坡最大的私立教育机构之一，注重实操技能和行业关联。', 
+    rank: '领先私立教育机构', 
+    services: ['行业链接', '就业指导', '现代化校区'], 
+    imageUrl: PlaceHolderImages.find(p => p.id === 's-psb')?.imageUrl || 'https://picsum.photos/seed/psb/800/600',
+    website: 'https://www.psb-academy.edu.sg',
+    courses: ['工商管理', '工程学', '生命科学', '信息技术'],
     type: 'Private'
   },
   { 
