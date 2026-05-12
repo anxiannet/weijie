@@ -46,7 +46,7 @@ const MODULE_NAMES: Record<Module, string> = {
   detail: '详情查看'
 };
 
-const QUICK_SCHOOLS = ['NUS', 'NTU', 'SMU', 'SUTD', 'SIT', 'SUSS'];
+const QUICK_SCHOOLS = ['NUS', 'NTU', 'SMU', 'SUTD', 'SIT', 'SUSS', 'NAFA', 'MDIS'];
 
 export default function AppHome() {
   const [activeModule, setActiveModule] = useState<Module>('dashboard');
@@ -99,7 +99,6 @@ export default function AppHome() {
 
   const bookmarkedItems = allItems.filter(item => bookmarks.includes(item.id));
 
-  // 增强房源搜索：支持按标题、地点、关联学校以及学校快捷过滤
   const filteredHousing = HOUSING_MOCK.filter(h => {
     const matchesSearch = h.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          h.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -112,7 +111,6 @@ export default function AppHome() {
   const filteredFood = FOOD_MOCK.filter(f => f.name.toLowerCase().includes(searchQuery.toLowerCase()));
   const filteredEvents = EVENTS_MOCK.filter(e => e.title.toLowerCase().includes(searchQuery.toLowerCase()));
 
-  // 获取特定学校附近的房源
   const getNearbyHousing = (schoolName: string) => {
     const schoolAbbr = schoolName.match(/\((.*?)\)/)?.[1] || schoolName;
     return HOUSING_MOCK.filter(h => h.distanceToUni.includes(schoolAbbr));
@@ -522,7 +520,6 @@ export default function AppHome() {
                   </div>
                 </div>
 
-                {/* 学校快速过滤器 */}
                 <div className="relative">
                   <ScrollArea className="w-full whitespace-nowrap">
                     <div className="flex w-max space-x-2 pb-4">

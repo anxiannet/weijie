@@ -80,6 +80,18 @@
       "imageHint": "polytechnic campus"
     },
     {
+      "id": "s-nafa",
+      "description": "Nanyang Academy of Fine Arts (NAFA)",
+      "imageUrl": "https://picsum.photos/seed/nafa/800/600",
+      "imageHint": "art school"
+    },
+    {
+      "id": "s-mdis",
+      "description": "Management Development Institute of Singapore (MDIS)",
+      "imageUrl": "https://picsum.photos/seed/mdis/800/600",
+      "imageHint": "modern campus"
+    },
+    {
       "id": "f-1",
       "description": "Haidilao Hot Pot",
       "imageUrl": "https://picsum.photos/seed/f1/800/600",

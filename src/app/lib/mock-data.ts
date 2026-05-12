@@ -23,7 +23,7 @@ export type School = {
   imageUrl: string;
   website: string;
   courses: string[];
-  type: 'University' | 'Polytechnic' | 'Private';
+  type: 'University' | 'Polytechnic' | 'Private' | 'Arts';
 };
 
 export type Food = {
@@ -80,7 +80,7 @@ export const HOUSING_MOCK: Housing[] = [
     title: '高品质联名空间', 
     price: 1500, 
     location: '欧南园 (Outram Park)', 
-    distanceToUni: '地铁 15 分钟至 SMU', 
+    distanceToUni: '地铁 15 分钟至 SMU/NAFA', 
     type: '普通房', 
     imageUrl: PlaceHolderImages.find(p => p.id === 'h-3')?.imageUrl || 'https://picsum.photos/seed/h3/800/600',
     description: '与志同道合的小伙伴共同生活，共享超大客厅和多功能休息室，定期举办社交活动。',
@@ -110,6 +110,18 @@ export const HOUSING_MOCK: Housing[] = [
     description: '顶级景观，落地窗直面金沙酒店，适合预算充裕的高端商务学生。',
     facilities: ['中央空调', '智能家居', '桑拿房', '网球场'],
     contact: 'Email: luxury@weijie.sg'
+  },
+  { 
+    id: 'h-mdis', 
+    title: '女皇镇学生公寓', 
+    price: 1100, 
+    location: '女皇镇 (Queenstown)', 
+    distanceToUni: '步行 10 分钟至 MDIS', 
+    type: '双人间', 
+    imageUrl: 'https://picsum.photos/seed/h6/800/600',
+    description: '靠近 MDIS 校园，环境清幽，周边有大型食阁和超市，生活极其便利。',
+    facilities: ['空调', '书桌', '大衣柜', '洗衣房'],
+    contact: '微信: MDIS_Stay'
   },
 ];
 
@@ -181,6 +193,28 @@ export const SCHOOLS_MOCK: School[] = [
     type: 'University'
   },
   { 
+    id: 's-nafa', 
+    name: '南洋艺术学院 (NAFA)', 
+    description: '新加坡首屈一指的艺术学府，培养了无数杰出的艺术家和设计师，与伦敦艺术大学有深厚合作。', 
+    rank: '东南亚顶尖艺术学院', 
+    services: ['艺术展览', '行业实习', '设计实验室'], 
+    imageUrl: PlaceHolderImages.find(p => p.id === 's-nafa')?.imageUrl || 'https://picsum.photos/seed/nafa/800/600',
+    website: 'https://www.nafa.edu.sg',
+    courses: ['视觉艺术', '表演艺术', '时尚设计', '音乐'],
+    type: 'Arts'
+  },
+  { 
+    id: 's-mdis', 
+    name: '新加坡管理发展学院 (MDIS)', 
+    description: '新加坡历史最悠久的非营利性终身学习专业机构，拥有完善的校园设施和宿舍。', 
+    rank: '资深私立院校', 
+    services: ['校园住宿', '职业发展中心', '全球合作办学'], 
+    imageUrl: PlaceHolderImages.find(p => p.id === 's-mdis')?.imageUrl || 'https://picsum.photos/seed/mdis/800/600',
+    website: 'https://www.mdis.edu.sg',
+    courses: ['工商管理', '传媒学', '生命科学', '时尚设计'],
+    type: 'Private'
+  },
+  { 
     id: 's-sim', 
     name: 'SIM 全球教育', 
     description: '新加坡领先的私立教育学院，与伦敦大学、伯明翰大学等全球顶尖名校合作办学。', 
@@ -192,28 +226,6 @@ export const SCHOOLS_MOCK: School[] = [
     type: 'Private'
   },
   { 
-    id: 's-jcu', 
-    name: '詹姆斯库克大学新加坡校区 (JCU)', 
-    description: '澳洲名校直属校区，是新加坡第一所获得 EduTrust Star 认证的私立学院。', 
-    rank: '澳洲直属校区', 
-    services: ['校际转换', '心理咨询', '英语强化'], 
-    imageUrl: 'https://picsum.photos/seed/sjcu/800/600',
-    website: 'https://www.jcu.edu.sg',
-    courses: ['商业管理', '环境科学', '信息技术'],
-    type: 'Private'
-  },
-  { 
-    id: 's-kaplan', 
-    name: 'Kaplan 新加坡', 
-    description: '全球知名的教育集团，提供多元化的学术课程，校园位于新加坡市中心。', 
-    rank: '职业教育领导者', 
-    services: ['就业指导', '灵活排课', '线上资源'], 
-    imageUrl: 'https://picsum.photos/seed/skaplan/800/600',
-    website: 'https://www.kaplan.com.sg',
-    courses: ['大众传媒', '物流管理', '市场营销'],
-    type: 'Private'
-  },
-  { 
     id: 's-sp', 
     name: '新加坡理工学院 (SP)', 
     description: '新加坡第一所理工学院，拥有悠久的历史和极高的行业认可度。', 
@@ -222,50 +234,6 @@ export const SCHOOLS_MOCK: School[] = [
     imageUrl: PlaceHolderImages.find(p => p.id === 's-poly')?.imageUrl || 'https://picsum.photos/seed/spoly/800/600',
     website: 'https://www.sp.edu.sg',
     courses: ['海事工程', '航空航天技术', '多媒体设计'],
-    type: 'Polytechnic'
-  },
-  { 
-    id: 's-np', 
-    name: '义安理工学院 (NP)', 
-    description: '以商科和传媒专业闻名，注重培养学生的创新精神。', 
-    rank: '商科传媒强校', 
-    services: ['海外浸入式项目', '企业孵化', '奖学金'], 
-    imageUrl: 'https://picsum.photos/seed/snp/800/600',
-    website: 'https://www.np.edu.sg',
-    courses: ['大众传媒', '商业管理', '健康科学'],
-    type: 'Polytechnic'
-  },
-  { 
-    id: 's-tp', 
-    name: '淡马锡理工学院 (TP)', 
-    description: '设计专业在本地名声显赫，校园环境现代化。', 
-    rank: '设计教育先驱', 
-    services: ['设计工作室', '行业项目', '社区服务'], 
-    imageUrl: 'https://picsum.photos/seed/stp/800/600',
-    website: 'https://www.tp.edu.sg',
-    courses: ['服装设计', '互动设计', '烹饪科学'],
-    type: 'Polytechnic'
-  },
-  { 
-    id: 's-nyp', 
-    name: '南洋理工学院 (NYP)', 
-    description: '在IT和工程领域有着非常紧密的校企合作。', 
-    rank: '技术教育领先', 
-    services: ['专业技能认证', '实习安置', '校友会'], 
-    imageUrl: 'https://picsum.photos/seed/snyp/800/600',
-    website: 'https://www.nyp.edu.sg',
-    courses: ['信息技术', '数码动画', '护理学'],
-    type: 'Polytechnic'
-  },
-  { 
-    id: 's-rp', 
-    name: '共和理工学院 (RP)', 
-    description: '全面推行“问题导向学习”(PBL)教学法，注重培养学生解决实际问题的能力。', 
-    rank: 'PBL 教学先锋', 
-    services: ['学生导师', '心理素质建设', '户外学习'], 
-    imageUrl: 'https://picsum.photos/seed/srp/800/600',
-    website: 'https://www.rp.edu.sg',
-    courses: ['运动科学', '艺术管理', '可再生能源'],
     type: 'Polytechnic'
   },
 ];
