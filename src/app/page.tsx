@@ -580,7 +580,7 @@ export default function AppHome() {
               <div className="animate-fade-in-up space-y-8">
                 <div className="flex flex-col gap-2">
                   <h1 className="font-headline text-3xl font-bold text-foreground">院校信息中心</h1>
-                  <p className="text-muted-foreground">新加坡顶尖大学的申请指南、排名及国际学生服务。</p>
+                  <p className="text-muted-foreground">新加坡大学、理工学院与私立院校的申请指南、排名及国际学生服务。</p>
                 </div>
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                   {filteredSchools.map(s => (
