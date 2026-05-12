@@ -109,7 +109,7 @@ export const HOUSING_MOCK: Housing[] = [
     imageUrl: PlaceHolderImages.find(p => p.id === 'h-5')?.imageUrl || 'https://picsum.photos/seed/h5/800/600',
     description: '顶级景观，落地窗直面金沙酒店，适合预算充裕的高端商务学生。',
     facilities: ['中央空调', '智能家居', '桑拿房', '网球场'],
-    contact: 'Email: luxury@weijie.sg'
+    contact: '邮箱: luxury@weijie.sg'
   },
   { 
     id: 'h-mdis', 
