@@ -88,3 +88,11 @@
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 0, 0, 0.2);
 }
+
+body:has(#listings:target) .home-intro-section {
+  display: none;
+}
+
+body:has(#listings:target) #listings {
+  margin-top: 0;
+}

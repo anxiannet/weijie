@@ -349,40 +349,139 @@ export const FOOD_MOCK: Food[] = [
     specialties: ['麻辣香锅', '麻辣烫'],
     openingHours: '09:00 AM - 08:30 PM'
   },
+  {
+    id: 'f6',
+    name: '老成都川菜馆',
+    category: '川菜',
+    priceRange: '$$',
+    location: '牛车水',
+    rating: 4.6,
+    imageUrl: 'https://images.unsplash.com/photo-1585032226651-759b368d7246?q=80&w=1200&auto=format&fit=crop',
+    specialties: ['水煮鱼', '辣子鸡', '担担面'],
+    openingHours: '11:00 - 22:00'
+  },
+  {
+    id: 'f7',
+    name: '金文泰学生食阁',
+    category: '平价食阁',
+    priceRange: '$',
+    location: '金文泰',
+    rating: 4.4,
+    imageUrl: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=1200&auto=format&fit=crop',
+    specialties: ['海南鸡饭', '经济菜饭', '鱼片汤'],
+    openingHours: '07:00 - 21:30'
+  },
+  {
+    id: 'f8',
+    name: 'Bugis 重庆小面',
+    category: '面食',
+    priceRange: '$',
+    location: '武吉士',
+    rating: 4.5,
+    imageUrl: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?q=80&w=1200&auto=format&fit=crop',
+    specialties: ['重庆小面', '酸辣粉', '红油抄手'],
+    openingHours: '10:30 - 21:00'
+  },
+  {
+    id: 'f9',
+    name: '乌节路港式茶餐厅',
+    category: '茶餐厅',
+    priceRange: '$$',
+    location: '乌节路',
+    rating: 4.2,
+    imageUrl: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=1200&auto=format&fit=crop',
+    specialties: ['菠萝油', '干炒牛河', '冻奶茶'],
+    openingHours: '09:00 - 22:30'
+  },
+  {
+    id: 'f10',
+    name: '榜鹅海鲜煮炒',
+    category: '本地中餐',
+    priceRange: '$$',
+    location: '榜鹅',
+    rating: 4.3,
+    imageUrl: 'https://images.unsplash.com/photo-1559339352-11d035aa65de?q=80&w=1200&auto=format&fit=crop',
+    specialties: ['辣椒螃蟹', '麦片虾', '三杯鸡'],
+    openingHours: '16:30 - 23:00'
+  },
 ];
 
 export const EVENTS_MOCK: Event[] = [
   { 
     id: 'e1', 
-    title: '春晚联欢晚会', 
-    date: '2024-02-10', 
+    title: '新生落地生活说明会', 
+    date: '2026-06-08', 
     time: '18:00', 
-    location: '金沙宴会厅', 
-    attendees: 500, 
+    location: '新加坡国立大学 UTown', 
+    attendees: 180, 
     imageUrl: PlaceHolderImages.find(p => p.id === 'e-1')?.imageUrl || 'https://picsum.photos/seed/e1/800/600',
-    organizer: '新加坡中国留学生联合会',
-    schedule: ['开幕致辞', '传统舞蹈表演', '抽奖环会', '晚宴']
+    organizer: '维界留学生活小组',
+    schedule: ['报到流程说明', '租房与通勤提醒', '电话卡与银行卡办理', '自由问答']
   },
   { 
     id: 'e2', 
-    title: '留学生就业博览会', 
-    date: '2024-03-15', 
+    title: '留学生就业准备工作坊', 
+    date: '2026-06-22', 
     time: '10:00', 
     location: '新达城会展中心', 
-    attendees: 1200, 
+    attendees: 260, 
     imageUrl: PlaceHolderImages.find(p => p.id === 'e-2')?.imageUrl || 'https://picsum.photos/seed/e2/800/600',
-    organizer: '新加坡人力部 (MOM)',
+    organizer: '维界职业发展栏目',
     schedule: ['企业展位咨询', '职业发展讲座', '简历现场指导']
   },
   { 
     id: 'e3', 
     title: '滨海湾夜间摄影之旅', 
-    date: '2024-04-05', 
+    date: '2026-07-05', 
     time: '19:30', 
     location: '滨海湾金沙', 
     attendees: 50, 
     imageUrl: PlaceHolderImages.find(p => p.id === 'e-3')?.imageUrl || 'https://picsum.photos/seed/e3/800/600',
     organizer: '维界摄影社团',
     schedule: ['集合与路线介绍', '实操拍摄指导', '后期分享交流']
+  },
+  {
+    id: 'e4',
+    title: 'NTU 周边看房路线团',
+    date: '2026-07-12',
+    time: '14:00',
+    location: '文礼地铁站',
+    attendees: 36,
+    imageUrl: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1200&auto=format&fit=crop',
+    organizer: '维界房源中心',
+    schedule: ['集合与路线说明', '参观三类房源', '合同条款讲解', '预算表整理']
+  },
+  {
+    id: 'e5',
+    title: '新加坡食阁文化体验',
+    date: '2026-07-19',
+    time: '17:30',
+    location: '老巴刹',
+    attendees: 72,
+    imageUrl: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=1200&auto=format&fit=crop',
+    organizer: '维界美食地图',
+    schedule: ['食阁点餐规则', '本地菜品介绍', '小组试吃', '生活预算分享']
+  },
+  {
+    id: 'e6',
+    title: 'SMU 市中心生活路线',
+    date: '2026-08-02',
+    time: '15:00',
+    location: '多美歌地铁站',
+    attendees: 48,
+    imageUrl: 'https://images.unsplash.com/photo-1525625293386-3f8f99389edd?q=80&w=1200&auto=format&fit=crop',
+    organizer: '维界城市探索',
+    schedule: ['校园周边步行路线', '平价餐厅标记', '图书馆与自习点', '夜间回家路线']
+  },
+  {
+    id: 'e7',
+    title: '留学生二手交换日',
+    date: '2026-08-16',
+    time: '13:00',
+    location: '金文泰社区中心',
+    attendees: 95,
+    imageUrl: 'https://images.unsplash.com/photo-1481437156560-3205f6a55735?q=80&w=1200&auto=format&fit=crop',
+    organizer: '维界社区',
+    schedule: ['二手物品登记', '自由交换', '搬家经验分享', '闲置发布指南']
   },
 ];
