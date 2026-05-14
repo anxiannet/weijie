@@ -1,21 +1,212 @@
-# **App Name**: WeiJie Life OS
+# 产品蓝图
 
-## Core Features:
+`blueprint.md` 用于描述维界当前产品的整体结构、核心模块与体验方向。
 
-- Notion-Style Hub Dashboard: A centralized life management interface using Notion-inspired card layouts to navigate Housing, Schools, Food, and Activities.
-- Smart Settle Advisor Tool: An AI assistant tool that uses reasoning to provide personalized advice for students arriving in Singapore, including banking and transport tips.
-- Firebase Rental Marketplace: Searchable property directory using Firebase, pre-populated with at least 5 residential listings including rental costs and proximity to campuses.
-- Educational Institute Directory: Database-driven school profiles featuring 3 major Singaporean universities with admission guidelines and international student services.
-- Gourmet Scout Map: A localized directory containing 5 or more Chinese student-focused dining locations with menus, prices, and location tagging via Firestore.
-- Event Horizon Scheduler: Real-time feed for student community activities, including RSVP capabilities for 3 launch-ready social events and networking sessions.
-- Personal Info-Workspace: User-specific bookmarking system that allows students to pin cards from any module to their personalized workspace using cloud persistence.
+它和其他文档的关系：
 
-## Style Guidelines:
+- `PROJECT.md` 说明产品全貌和长期目标。
+- `AGENTS.md` 约束 AI / Codex 的总体行为。
+- `docs/brand.md` 定义品牌系统。
+- `docs/seo.md` 定义 SEO 规则。
+- `docs/content-style.md` 定义文案风格。
+- `docs/singapore-student.md` 定义用户画像。
+- `docs/blueprint.md` 负责把产品模块和体验结构串起来。
 
-- The palette is informed by a mix of 'Academic Structure' and 'Modern Minimalist'. Primary color is a deep Sapphire Blue (#2950A3) representing trust and stability.
-- The background uses an ultra-clean Light Indigo (#F8F9FB) to mimic the canvas feel of digital workspaces, ensuring high legibility.
-- Accent highlights use a refreshing Arctic Cyan (#229DB3) to draw attention to call-to-actions and status indicators.
-- A font pairing featuring 'Space Grotesk' for structural tech-inspired headlines and 'Inter' for highly readable body text and metadata, emphasizing the 'Operating System' aesthetic.
-- Uses minimalist line icons with consistent weights, focused on utilitarian clarity similar to architectural blueprints.
-- Responsive card-based grid system inspired by productivity platforms like Notion, featuring heavy border-radii and subtle drop shadows for depth.
-- Fluid, low-latency micro-interactions and staggered entry transitions for cards when switching between the four main life modules.
+## 产品名称
+
+维界
+
+## 产品定位
+
+维界是面向新加坡中国留学生的一站式生活平台。
+
+它不是资讯流，也不是营销型留学站点，而是一个结构化的留学生活系统。
+
+## 核心目标
+
+帮助中国留学生在新加坡更快建立生活秩序。
+
+维界要解决的问题包括：
+
+- 信息分散
+- 租房不确定
+- 学校周边生活不熟悉
+- 缺少可信本地指南
+- 活动与社交信息难集中
+
+## 核心模块
+
+### 首页
+
+首页负责建立品牌认知。
+
+首页应说明：
+
+- 维界是什么
+- 服务谁
+- 提供哪些生活模块
+- 为什么信息是清晰、可信、可长期使用的
+
+首页可以包含品牌 Hero、模块入口和 About 摘要。
+
+### 房源中心
+
+房源中心是工具页，不应展示过多品牌介绍。
+
+核心能力：
+
+- 浏览房源
+- 搜索地点、标题或描述
+- 按学校筛选
+- 按房源类型筛选
+- 按最高租金筛选
+- 收藏房源
+- 查看详情
+- 发布房源
+
+房源数据以 Supabase 为准。
+
+房源图片使用 Cloudflare R2。
+
+### 院校信息
+
+院校信息用于整理新加坡高校、理工学院和私立院校。
+
+内容包括：
+
+- 学校介绍
+- 课程方向
+- 学生服务
+- 校园生活
+- 周边租房
+- 交通信息
+
+院校列表应支持详情页。
+
+### 美食地图
+
+美食地图用于收集适合中国留学生的日常餐饮信息。
+
+内容包括：
+
+- 中国学生常去餐厅
+- 食阁
+- 平价美食
+- 夜宵
+- 火锅
+- 麻辣烫
+- 奶茶
+
+风格应像生活指南，不像探店营销。
+
+美食列表应支持详情页。
+
+### 活动中心
+
+活动中心用于集中展示校园活动、社交活动和本地生活活动。
+
+内容包括：
+
+- 校园活动
+- 社交活动
+- 兼职信息
+- Meetup
+- 展览
+- 演出
+- 周末推荐
+
+活动列表应支持详情页。
+
+### 留学指南
+
+留学指南用于沉淀长期有效的结构化内容。
+
+主题包括：
+
+- 新加坡租房攻略
+- 入境准备
+- 电话卡
+- 银行卡
+- 交通
+- 日常生活
+- 学校申请
+
+指南页面应支持列表页和详情页。
+
+## 信息架构
+
+当前主要页面：
+
+- `/` 首页
+- `/#listings` 房源中心
+- `/listings/new` 发布房源
+- `/listings/[id]` 房源详情
+- `/schools` 院校信息
+- `/schools/[id]` 院校详情
+- `/food` 美食地图
+- `/food/[id]` 美食详情
+- `/events` 活动中心
+- `/events/[id]` 活动详情
+- `/guides` 留学指南
+- `/guides/[id]` 指南详情
+- `/auth` 登录与注册
+
+## 体验原则
+
+页面体验应遵守：
+
+- 工具页优先信息效率
+- 首页负责品牌认知
+- 列表页负责比较与筛选
+- 详情页负责解释与决策
+- 导航应清晰稳定
+- 移动端必须可用
+
+## 设计方向
+
+整体设计应保持：
+
+- 极简
+- 克制
+- 结构化
+- 高可读性
+- 系统感
+
+视觉参考：
+
+- Notion
+- Apple
+- Linear
+- Airbnb
+- Stripe
+
+## 技术蓝图
+
+前端：
+
+- Next.js App Router
+- TypeScript
+- Tailwind CSS
+
+后端：
+
+- Supabase
+- PostgreSQL
+
+图片存储：
+
+- Cloudflare R2
+
+部署：
+
+- Vercel
+- Cloudflare
+
+## 当前注意事项
+
+- 用户可见文案默认中文。
+- 不要使用夸张营销文案。
+- 不要把房源中心做成品牌落地页。
+- 生产密钥不得提交。
+- `.env.local` 只用于本地。
+- R2 自定义域名和 CORS 需要在 Cloudflare 中正确配置。
