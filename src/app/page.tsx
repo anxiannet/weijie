@@ -148,7 +148,7 @@ export default async function MarketplaceHome({
           <SidebarHeader className="border-b p-6">
             <Link href="/" className="flex items-center gap-3">
               <span className="relative h-10 w-10 overflow-hidden rounded-lg border bg-background shadow-sm">
-                <Image src="/weijie-logo-icon.png?v=202605130107" alt="维界图标" fill className="object-cover" sizes="40px" />
+                <Image src="/weijie-logo-icon.png?v=202605141037" alt="维界图标" fill className="object-cover" sizes="40px" />
               </span>
               <span className="flex flex-col">
                 <span className="font-headline font-bold leading-none tracking-tight text-foreground">维界</span>
@@ -229,7 +229,7 @@ export default async function MarketplaceHome({
               <div className="hidden h-4 w-px bg-border sm:block" />
               <div className="flex min-w-0 items-center gap-2 text-sm font-medium text-muted-foreground">
                 <span className="relative h-6 w-6 shrink-0 overflow-hidden rounded-md border bg-background">
-                  <Image src="/weijie-logo-icon.png?v=202605130107" alt="维界图标" fill className="object-cover" sizes="24px" />
+                  <Image src="/weijie-logo-icon.png?v=202605141037" alt="维界图标" fill className="object-cover" sizes="24px" />
                 </span>
                 <span>维界</span>
                 <ChevronRight className="h-4 w-4 shrink-0" />

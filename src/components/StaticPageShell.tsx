@@ -29,7 +29,7 @@ export function StaticPageShell({active, breadcrumb, children}: StaticPageShellP
           <SidebarHeader className="border-b p-6">
             <Link href="/" className="flex items-center gap-3">
               <span className="relative h-10 w-10 overflow-hidden rounded-lg border bg-background shadow-sm">
-                <Image src="/weijie-logo-icon.png?v=202605130107" alt="维界图标" fill className="object-cover" sizes="40px" />
+                <Image src="/weijie-logo-icon.png?v=202605141037" alt="维界图标" fill className="object-cover" sizes="40px" />
               </span>
               <span className="flex flex-col">
                 <span className="font-headline font-bold leading-none tracking-tight text-foreground">维界</span>

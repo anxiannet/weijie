@@ -34,8 +34,8 @@ export const metadata: Metadata = {
     canonical: '/',
   },
   icons: {
-    icon: '/weijie-logo-icon.png?v=202605130107',
-    apple: '/weijie-logo-icon.png?v=202605130107',
+    icon: '/weijie-logo-icon.png?v=202605141037',
+    apple: '/weijie-logo-icon.png?v=202605141037',
   },
   openGraph: {
     title: '维界 | 新加坡留学生活系统',
