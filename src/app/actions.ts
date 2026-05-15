@@ -126,6 +126,7 @@ export async function createListingAction(formData: FormData) {
   const writeClient = createSupabaseAdminClient() || supabase;
 
   let listingId: string | null = null;
+  let actionError: string | null = null;
 
   try {
     const payload = getListingFormPayload(formData);
@@ -145,7 +146,11 @@ export async function createListingAction(formData: FormData) {
 
     listingId = data.id;
   } catch (error) {
-    redirect(`/listings/new?error=${encodeURIComponent(toActionErrorMessage(error))}`);
+    actionError = toActionErrorMessage(error);
+  }
+
+  if (actionError) {
+    redirect(`/listings/new?error=${encodeURIComponent(actionError)}`);
   }
 
   revalidatePath('/');
@@ -154,18 +159,29 @@ export async function createListingAction(formData: FormData) {
 
 export async function updateListingAction(formData: FormData) {
   const {supabase, user} = await requireUser();
-  const writeClient = createSupabaseAdminClient() || supabase;
+  const adminClient = createSupabaseAdminClient();
+  const writeClient = adminClient || supabase;
+  const readClient = adminClient || supabase;
   const listingId = requireString(formData, 'listing_id');
+  let actionError: string | null = null;
 
   try {
     const payload = getListingFormPayload(formData);
-    const {data: listing, error: listingError} = await (supabase as any)
+    const {data: listing, error: listingError} = await (readClient as any)
       .from('listings')
       .select('id, owner_id')
       .eq('id', listingId)
-      .single();
+      .maybeSingle();
 
-    if (listingError || !listing || listing.owner_id !== user.id) {
+    if (listingError) {
+      throw new Error(listingError.message);
+    }
+
+    if (!listing) {
+      throw new Error('没有找到这条房源');
+    }
+
+    if (String(listing.owner_id) !== String(user.id)) {
       throw new Error('只能修改自己发布的房源');
     }
 
@@ -179,7 +195,11 @@ export async function updateListingAction(formData: FormData) {
       throw new Error(error.message);
     }
   } catch (error) {
-    redirect(`/listings/${listingId}/edit?error=${encodeURIComponent(toActionErrorMessage(error))}`);
+    actionError = toActionErrorMessage(error);
+  }
+
+  if (actionError) {
+    redirect(`/listings/${listingId}/edit?error=${encodeURIComponent(actionError)}`);
   }
 
   revalidatePath('/');
