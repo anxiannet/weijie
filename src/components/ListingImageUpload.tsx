@@ -6,8 +6,12 @@ import {ImagePlus, Loader2, X} from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
 
-export function ListingImageUpload() {
-  const [imageUrls, setImageUrls] = useState<string[]>([]);
+type ListingImageUploadProps = {
+  initialImageUrls?: string[];
+};
+
+export function ListingImageUpload({initialImageUrls = []}: ListingImageUploadProps) {
+  const [imageUrls, setImageUrls] = useState<string[]>(initialImageUrls);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 

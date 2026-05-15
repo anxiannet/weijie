@@ -128,6 +128,64 @@ export async function createListingAction(formData: FormData) {
   redirect(`/listings/${data.id}`);
 }
 
+export async function updateListingAction(formData: FormData) {
+  const {supabase, user} = await requireUser();
+  const writeClient = createSupabaseAdminClient() || supabase;
+  const listingId = requireString(formData, 'listing_id');
+  const price = parsePositiveNumber(formData.get('price_sgd'));
+  const title = requireString(formData, 'title');
+  const description = requireString(formData, 'description');
+  const location = requireString(formData, 'location');
+  const listingType = requireString(formData, 'listing_type') as ListingType;
+  const imageUrls = formData
+    .getAll('image_urls')
+    .map((value) => String(value).trim())
+    .filter(Boolean);
+  const selectedAmenities = AMENITY_OPTIONS.filter((amenity) => formData.get(`amenity:${amenity}`));
+
+  if (!price) {
+    throw new Error('租金必须大于 0');
+  }
+
+  const {data: listing, error: listingError} = await (supabase as any)
+    .from('listings')
+    .select('id, owner_id')
+    .eq('id', listingId)
+    .single();
+
+  if (listingError || !listing || listing.owner_id !== user.id) {
+    throw new Error('只能修改自己发布的房源');
+  }
+
+  const {error} = await (writeClient as any)
+    .from('listings')
+    .update({
+      title,
+      description,
+      location,
+      nearest_school: String(formData.get('nearest_school') || '').trim() || null,
+      mrt_station: String(formData.get('mrt_station') || '').trim() || null,
+      price_sgd: price,
+      bedrooms: parsePositiveNumber(formData.get('bedrooms')),
+      bathrooms: parsePositiveNumber(formData.get('bathrooms')),
+      listing_type: listingType,
+      available_from: String(formData.get('available_from') || '').trim() || null,
+      image_urls: imageUrls,
+      amenities: selectedAmenities,
+    })
+    .eq('id', listingId)
+    .eq('owner_id', user.id);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  revalidatePath('/');
+  revalidatePath(`/listings/${listingId}`);
+  revalidatePath(`/listings/${listingId}/edit`);
+  redirect(`/listings/${listingId}`);
+}
+
 export async function toggleFavoriteAction(formData: FormData) {
   const {supabase, user} = await requireUser();
   const listingId = requireString(formData, 'listing_id');

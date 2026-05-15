@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import {notFound} from 'next/navigation';
-import {ArrowLeft, CalendarDays, Heart, MapPin, MessageCircle, TrainFront} from 'lucide-react';
+import {ArrowLeft, CalendarDays, Heart, MapPin, MessageCircle, Pencil, TrainFront} from 'lucide-react';
 import {addCommentAction, toggleFavoriteAction} from '@/app/actions';
 import {Badge} from '@/components/ui/badge';
 import {Button} from '@/components/ui/button';
@@ -71,6 +71,7 @@ export default async function ListingDetailPage({
   if (!listing) notFound();
 
   const isFavorited = Boolean(listing.favorites?.some((favorite) => favorite.user_id === userId));
+  const canEdit = listing.owner_id === userId;
   const images = listing.image_urls.length > 0 ? listing.image_urls : ['/weijie-logo-wordmark.png'];
 
   return (
@@ -183,6 +184,14 @@ export default async function ListingDetailPage({
                   <p className="mt-1">{listing.profiles?.display_name || '维界用户'}</p>
                   {listing.profiles?.phone && <p className="mt-1">联系方式：{listing.profiles.phone}</p>}
                 </div>
+                {canEdit && (
+                  <Button asChild variant="outline" className="w-full">
+                    <Link href={`/listings/${listing.id}/edit`}>
+                      <Pencil className="h-4 w-4" />
+                      编辑房源
+                    </Link>
+                  </Button>
+                )}
                 <Button asChild variant="outline" className="w-full">
                   <Link href="/listings/new">发布相似房源</Link>
                 </Button>
