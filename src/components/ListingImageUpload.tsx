@@ -19,28 +19,20 @@ export function ListingImageUpload({initialImageUrls = []}: ListingImageUploadPr
     setError(null);
     startTransition(async () => {
       try {
-        const presignResponse = await fetch('/api/uploads/presign', {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const uploadResponse = await fetch('/api/uploads/listing-image', {
           method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({fileName: file.name, contentType: file.type}),
+          body: formData,
         });
-        const presign = await presignResponse.json();
-
-        if (!presignResponse.ok) {
-          throw new Error(presign.error || '无法创建上传链接');
-        }
-
-        const uploadResponse = await fetch(presign.uploadUrl, {
-          method: 'PUT',
-          headers: {'Content-Type': file.type},
-          body: file,
-        });
+        const uploadResult = await uploadResponse.json().catch(() => null);
 
         if (!uploadResponse.ok) {
-          throw new Error('图片上传失败');
+          throw new Error(uploadResult?.error || '图片上传失败');
         }
 
-        setImageUrls((current) => [...current, presign.publicUrl]);
+        setImageUrls((current) => [...current, uploadResult.publicUrl]);
       } catch (uploadError) {
         setError(uploadError instanceof Error ? uploadError.message : '图片上传失败');
       }
@@ -56,7 +48,7 @@ export function ListingImageUpload({initialImageUrls = []}: ListingImageUploadPr
       <label className="flex min-h-36 cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed bg-muted/40 p-6 text-center transition-colors hover:bg-muted">
         {isPending ? <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /> : <ImagePlus className="h-6 w-6 text-muted-foreground" />}
         <span className="mt-3 text-sm font-medium">上传房源图片</span>
-        <span className="mt-1 text-xs text-muted-foreground">图片将通过 Cloudflare R2 存储</span>
+        <span className="mt-1 text-xs text-muted-foreground">支持 JPG、PNG、WebP，单张不超过 4MB</span>
         <Input
           type="file"
           accept="image/*"

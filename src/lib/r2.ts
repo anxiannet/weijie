@@ -27,8 +27,7 @@ export async function createListingImageUploadUrl(input: {
     return null;
   }
 
-  const extension = input.fileName.split('.').pop()?.toLowerCase() || 'jpg';
-  const key = `listings/${input.userId}/${crypto.randomUUID()}.${extension}`;
+  const key = createListingImageKey(input.userId, input.fileName);
   const command = new PutObjectCommand({
     Bucket: appEnv.r2Bucket,
     Key: key,
@@ -40,4 +39,36 @@ export async function createListingImageUploadUrl(input: {
     uploadUrl: await getSignedUrl(client, command, {expiresIn: 60 * 5}),
     publicUrl: `${appEnv.r2PublicBaseUrl.replace(/\/$/, '')}/${key}`,
   };
+}
+
+export async function uploadListingImage(input: {
+  userId: string;
+  fileName: string;
+  contentType: string;
+  body: Buffer;
+}) {
+  const client = createR2Client();
+  if (!client || !appEnv.r2Bucket || !appEnv.r2PublicBaseUrl) {
+    return null;
+  }
+
+  const key = createListingImageKey(input.userId, input.fileName);
+  await client.send(
+    new PutObjectCommand({
+      Bucket: appEnv.r2Bucket,
+      Key: key,
+      Body: input.body,
+      ContentType: input.contentType,
+    })
+  );
+
+  return {
+    key,
+    publicUrl: `${appEnv.r2PublicBaseUrl.replace(/\/$/, '')}/${key}`,
+  };
+}
+
+function createListingImageKey(userId: string, fileName: string) {
+  const extension = fileName.split('.').pop()?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+  return `listings/${userId}/${crypto.randomUUID()}.${extension}`;
 }
