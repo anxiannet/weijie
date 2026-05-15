@@ -1,8 +1,9 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import {redirect} from 'next/navigation';
-import {ArrowLeft, Heart, Home, MapPin} from 'lucide-react';
+import {Heart, Home} from 'lucide-react';
 import {FavoriteButton} from '@/components/FavoriteButton';
+import {StaticPageShell} from '@/components/StaticPageShell';
 import {Badge} from '@/components/ui/badge';
 import {Button} from '@/components/ui/button';
 import {Card, CardContent} from '@/components/ui/card';
@@ -54,26 +55,27 @@ export default async function FavoritesPage() {
   const {favorites, configReady, schemaReady} = await getFavoriteListings();
 
   return (
-    <main className="min-h-screen bg-background">
-      <div className="mx-auto max-w-7xl px-4 py-6 md:px-8">
-        <Button asChild variant="ghost" className="mb-4">
-          <Link href="/#listings">
-            <ArrowLeft className="h-4 w-4" /> 返回房源中心
-          </Link>
-        </Button>
-
-        <section className="flex flex-col gap-4 border-b pb-6 md:flex-row md:items-end md:justify-between">
+    <StaticPageShell active="favorites" breadcrumb="我的收藏">
+      <div>
+        <section className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
             <Badge variant="secondary" className="rounded-md">
-              收藏
+              我的收藏
             </Badge>
-            <h1 className="mt-4 font-headline text-4xl font-bold leading-tight text-foreground">我的收藏房源</h1>
-            <p className="mt-3 max-w-2xl text-muted-foreground">
-              保存正在比较的房源，方便之后继续查看位置、租金和发布者信息。
-            </p>
+            <h1 className="mt-4 font-headline text-4xl font-bold leading-tight text-foreground">收藏内容</h1>
           </div>
-          <p className="text-sm text-muted-foreground">{favorites.length} 个收藏</p>
+          <Button asChild>
+            <Link href="/#listings">
+              <Home className="h-4 w-4" /> 浏览房源
+            </Link>
+          </Button>
         </section>
+
+        <div className="mt-6 flex flex-wrap gap-2 border-b pb-6">
+          <Button>房源 {favorites.length}</Button>
+          <Button variant="outline" disabled>美食</Button>
+          <Button variant="outline" disabled>活动</Button>
+        </div>
 
         {(!configReady || !schemaReady) && (
           <Card className="mt-8 border-amber-200 bg-amber-50 text-amber-950">
@@ -120,28 +122,30 @@ export default async function FavoritesPage() {
                         className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
                         sizes="(max-width: 768px) 100vw, 33vw"
                       />
-                    </div>
-                  </Link>
-                  <CardContent className="p-5">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <Badge variant="secondary" className="rounded-md">
+                      <div className="absolute left-3 right-16 top-3 flex flex-wrap gap-2">
+                        <Badge variant="secondary" className="rounded-md bg-background/90 shadow-sm backdrop-blur">
                           {LISTING_TYPE_LABELS[listing.listing_type]}
                         </Badge>
-                        <Link href={`/listings/${listing.id}`} className="mt-3 block">
-                          <h2 className="line-clamp-2 font-headline text-xl font-bold hover:text-primary">{listing.title}</h2>
-                        </Link>
+                        {listing.nearest_school && (
+                          <Badge variant="secondary" className="rounded-md bg-background/90 shadow-sm backdrop-blur">
+                            {listing.nearest_school}
+                          </Badge>
+                        )}
                       </div>
-                      <FavoriteButton listingId={listing.id} initialIsFavorited refreshOnComplete />
+                      <div className="absolute right-3 top-3">
+                        <FavoriteButton listingId={listing.id} initialIsFavorited refreshOnComplete />
+                      </div>
+                      <div className="absolute bottom-3 right-3">
+                        <div className="rounded-md bg-background/90 px-3 py-1.5 text-sm font-semibold text-primary shadow-sm backdrop-blur">
+                          每月 {listing.price_sgd} 新币
+                        </div>
+                      </div>
                     </div>
-                    <p className="mt-3 flex items-center gap-1 text-sm text-muted-foreground">
-                      <MapPin className="h-4 w-4" /> {listing.location}
-                    </p>
-                    <div className="mt-4 flex items-center justify-between">
-                      <p className="font-headline text-2xl font-bold text-primary">S${listing.price_sgd}</p>
-                      <p className="text-sm text-muted-foreground">每月</p>
-                    </div>
-                    <p className="mt-4 line-clamp-2 text-sm leading-6 text-muted-foreground">{listing.description}</p>
+                  </Link>
+                  <CardContent className="p-4">
+                    <Link href={`/listings/${listing.id}`} className="block">
+                      <h2 className="line-clamp-2 font-headline text-base font-semibold leading-snug hover:text-primary">{listing.title}</h2>
+                    </Link>
                   </CardContent>
                 </Card>
               );
@@ -149,6 +153,6 @@ export default async function FavoritesPage() {
           </div>
         )}
       </div>
-    </main>
+    </StaticPageShell>
   );
 }

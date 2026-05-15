@@ -71,7 +71,7 @@ export function FavoriteButton({
       aria-label={isFavorited ? '取消收藏' : '收藏房源'}
       onClick={toggleFavorite}
     >
-      <Heart className={isFavorited ? 'h-4 w-4 fill-primary text-primary' : 'h-4 w-4'} />
+      <Heart className={isFavorited ? 'h-4 w-4 fill-red-500 text-red-500' : 'h-4 w-4'} />
       {showLabel && (isFavorited ? '已收藏' : '收藏房源')}
     </Button>
   );

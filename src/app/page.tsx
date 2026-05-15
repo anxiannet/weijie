@@ -9,7 +9,6 @@ import {
   Home,
   Info,
   LogOut,
-  MapPin,
   Plus,
   Search,
   SlidersHorizontal,
@@ -37,7 +36,7 @@ import {
 import {signOutAction} from '@/app/actions';
 import {LISTING_TYPE_LABELS, SCHOOL_OPTIONS} from '@/lib/marketplace';
 import {createSupabaseAdminClient, createSupabaseServerClient} from '@/lib/supabase/server';
-import type {Favorite, ListingWithOwner} from '@/lib/supabase/database.types';
+import type {ListingWithOwner} from '@/lib/supabase/database.types';
 
 export const dynamic = 'force-dynamic';
 
@@ -53,10 +52,6 @@ type CurrentUser = {
   displayName: string;
 };
 
-type FavoriteListing = Favorite & {
-  listings: ListingWithOwner | null;
-};
-
 function getParam(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
 }
@@ -67,7 +62,6 @@ async function getMarketplaceData(filters: HomeSearchParams) {
     return {
       currentUser: null,
       listings: [] as ListingWithOwner[],
-      favoriteListings: [] as ListingWithOwner[],
       configReady: false,
       schemaReady: false,
     };
@@ -93,32 +87,6 @@ async function getMarketplaceData(filters: HomeSearchParams) {
       id: user.id,
       displayName: profileName || metadataName || user.email?.split('@')[0] || '维界用户',
     };
-  }
-
-  let favoriteListings: ListingWithOwner[] = [];
-
-  if (user) {
-    const {data: favoritesData, error: favoritesError} = await (readClient as any)
-      .from('favorites')
-      .select(
-        'user_id, listing_id, created_at, listings(*, profiles!listings_owner_id_fkey(display_name, phone, avatar_url), favorites(user_id, listing_id, created_at))'
-      )
-      .eq('user_id', user.id)
-      .order('created_at', {ascending: false});
-
-    if (favoritesError) {
-      return {
-        currentUser,
-        listings: [] as ListingWithOwner[],
-        favoriteListings: [] as ListingWithOwner[],
-        configReady: true,
-        schemaReady: false,
-      };
-    }
-
-    favoriteListings = ((favoritesData || []) as FavoriteListing[])
-      .map((favorite) => favorite.listings)
-      .filter((listing): listing is ListingWithOwner => Boolean(listing && listing.status === 'published'));
   }
 
   let query = readClient
@@ -150,7 +118,6 @@ async function getMarketplaceData(filters: HomeSearchParams) {
     return {
       currentUser,
       listings: [] as ListingWithOwner[],
-      favoriteListings,
       configReady: true,
       schemaReady: false,
     };
@@ -159,7 +126,6 @@ async function getMarketplaceData(filters: HomeSearchParams) {
   return {
     currentUser,
     listings: (data || []) as ListingWithOwner[],
-    favoriteListings,
     configReady: true,
     schemaReady: true,
   };
@@ -182,26 +148,30 @@ function ListingCard({
       <Link href={`/listings/${listing.id}`} className="block">
         <div className="relative aspect-[4/3] bg-muted">
           <Image src={imageUrl} alt={listing.title} fill unoptimized className="object-cover transition-transform duration-300 group-hover:scale-[1.03]" sizes="(max-width: 768px) 100vw, 33vw" />
+          <div className="absolute left-3 right-16 top-3 flex flex-wrap gap-2">
+            <Badge variant="secondary" className="rounded-md bg-background/90 shadow-sm backdrop-blur">
+              {LISTING_TYPE_LABELS[listing.listing_type]}
+            </Badge>
+            {listing.nearest_school && (
+              <Badge variant="secondary" className="rounded-md bg-background/90 shadow-sm backdrop-blur">
+                {listing.nearest_school}
+              </Badge>
+            )}
+          </div>
+          <div className="absolute right-3 top-3">
+            <FavoriteButton listingId={listing.id} initialIsFavorited={isFavorited} refreshOnComplete={refreshFavoriteOnComplete} />
+          </div>
+          <div className="absolute bottom-3 right-3">
+            <div className="rounded-md bg-background/90 px-3 py-1.5 text-sm font-semibold text-primary shadow-sm backdrop-blur">
+              每月 {listing.price_sgd} 新币
+            </div>
+          </div>
         </div>
       </Link>
-      <CardContent className="p-5">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <Badge variant="secondary" className="rounded-md">{LISTING_TYPE_LABELS[listing.listing_type]}</Badge>
-            <Link href={`/listings/${listing.id}`} className="mt-3 block">
-              <h3 className="line-clamp-2 font-headline text-xl font-bold hover:text-primary">{listing.title}</h3>
-            </Link>
-          </div>
-          <FavoriteButton listingId={listing.id} initialIsFavorited={isFavorited} refreshOnComplete={refreshFavoriteOnComplete} />
-        </div>
-        <p className="mt-3 flex items-center gap-1 text-sm text-muted-foreground">
-          <MapPin className="h-4 w-4" /> {listing.location}
-        </p>
-        <div className="mt-4 flex items-center justify-between">
-          <p className="font-headline text-2xl font-bold text-primary">S${listing.price_sgd}</p>
-          <p className="text-sm text-muted-foreground">每月</p>
-        </div>
-        <p className="mt-4 line-clamp-2 text-sm leading-6 text-muted-foreground">{listing.description}</p>
+      <CardContent className="p-4">
+        <Link href={`/listings/${listing.id}`} className="block">
+          <h3 className="line-clamp-2 font-headline text-base font-semibold leading-snug hover:text-primary">{listing.title}</h3>
+        </Link>
       </CardContent>
     </Card>
   );
@@ -219,7 +189,7 @@ export default async function MarketplaceHome({
     type: getParam(params.type) || 'all',
     max: getParam(params.max) || '',
   };
-  const {currentUser, listings, favoriteListings, configReady, schemaReady} = await getMarketplaceData(filters);
+  const {currentUser, listings, configReady, schemaReady} = await getMarketplaceData(filters);
 
   return (
     <SidebarProvider>
@@ -244,14 +214,14 @@ export default async function MarketplaceHome({
               </SidebarGroupLabel>
               <SidebarMenu>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive tooltip="收藏">
-                    <a href="#overview">
+                  <SidebarMenuButton asChild tooltip="收藏">
+                    <a href="/favorites">
                       <Heart /> <span>我的收藏</span>
                     </a>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="房源">
+                  <SidebarMenuButton asChild isActive tooltip="房源">
                     <a href="#listings">
                       <Home /> <span>房源中心</span>
                     </a>
@@ -350,53 +320,7 @@ export default async function MarketplaceHome({
           </header>
 
           <div className="mx-auto max-w-7xl p-4 md:p-8">
-            <section id="overview" className="space-y-6">
-              <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-                <div className="flex flex-col gap-2">
-                  <Badge variant="secondary" className="w-fit rounded-md">我的收藏</Badge>
-                  <h1 className="font-headline text-3xl font-bold leading-tight text-foreground md:text-4xl">收藏房源</h1>
-                  <p className="max-w-2xl text-muted-foreground">先查看已经保存的房源，再继续比较新的租房选择。</p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <p className="text-sm text-muted-foreground">{currentUser ? `${favoriteListings.length} 个收藏` : '登录后显示收藏'}</p>
-                  <Button asChild>
-                    <Link href="/listings/new">
-                      <Plus className="h-4 w-4" /> 发布房源
-                    </Link>
-                  </Button>
-                </div>
-              </div>
-
-              {!currentUser ? (
-                <div className="rounded-2xl border border-dashed bg-card p-8 text-center">
-                  <Heart className="mx-auto h-10 w-10 text-muted-foreground" />
-                  <p className="mt-4 font-semibold">登录后查看收藏房源</p>
-                  <p className="mt-2 text-sm text-muted-foreground">收藏会同步到你的账户，方便之后继续比较。</p>
-                  <Button asChild className="mt-6">
-                    <Link href="/auth">登录</Link>
-                  </Button>
-                </div>
-              ) : favoriteListings.length === 0 ? (
-                <div className="rounded-2xl border border-dashed bg-card p-8 text-center">
-                  <Heart className="mx-auto h-10 w-10 text-muted-foreground" />
-                  <p className="mt-4 font-semibold">还没有收藏房源</p>
-                  <p className="mt-2 text-sm text-muted-foreground">浏览房源时点击心形按钮，就可以把它保存到这里。</p>
-                  <Button asChild variant="outline" className="mt-6">
-                    <a href="#listings">
-                      <Home className="h-4 w-4" /> 浏览房源
-                    </a>
-                  </Button>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                  {favoriteListings.map((listing) => (
-                    <ListingCard key={listing.id} listing={listing} currentUser={currentUser} refreshFavoriteOnComplete />
-                  ))}
-                </div>
-              )}
-            </section>
-
-            <section id="listings" className="mt-8 space-y-6">
+            <section id="listings" className="space-y-6">
               <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
                 <div className="flex flex-col gap-2">
                   <h2 className="font-headline text-3xl font-bold text-foreground">新加坡房源库</h2>

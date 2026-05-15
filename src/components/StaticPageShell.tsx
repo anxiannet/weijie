@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import {BookOpen, Calendar, GraduationCap, Home, Info, LayoutDashboard, Utensils} from 'lucide-react';
+import {BookOpen, Calendar, GraduationCap, Heart, Home, Info, Utensils} from 'lucide-react';
 import {
   Sidebar,
   SidebarContent,
@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/sidebar';
 
 type StaticPageShellProps = {
-  active: 'home' | 'guides' | 'schools' | 'food' | 'events' | 'about';
+  active: 'favorites' | 'guides' | 'schools' | 'food' | 'events' | 'about';
   breadcrumb: string;
   children: React.ReactNode;
 };
@@ -43,9 +43,9 @@ export function StaticPageShell({active, breadcrumb, children}: StaticPageShellP
               <SidebarGroupLabel className="px-2 pb-2 text-[10px] font-bold uppercase tracking-wider">主要功能</SidebarGroupLabel>
               <SidebarMenu>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={active === 'home'} tooltip="控制台">
-                    <a href="/">
-                      <LayoutDashboard /> <span>主控制台</span>
+                  <SidebarMenuButton asChild isActive={active === 'favorites'} tooltip="收藏">
+                    <a href="/favorites">
+                      <Heart /> <span>我的收藏</span>
                     </a>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
