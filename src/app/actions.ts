@@ -210,17 +210,32 @@ export async function updateListingAction(formData: FormData) {
 
 export async function toggleFavoriteAction(formData: FormData) {
   const {supabase, user} = await requireUser();
+  const writeClient = createSupabaseAdminClient() || supabase;
   const listingId = requireString(formData, 'listing_id');
   const isFavorited = formData.get('is_favorited') === 'true';
+  const redirectTo = String(formData.get('redirect_to') || '').trim();
 
   if (isFavorited) {
-    await (supabase as any).from('favorites').delete().match({listing_id: listingId, user_id: user.id});
+    const {error} = await (writeClient as any).from('favorites').delete().match({listing_id: listingId, user_id: user.id});
+
+    if (error) {
+      throw new Error(error.message);
+    }
   } else {
-    await (supabase as any).from('favorites').insert({listing_id: listingId, user_id: user.id});
+    const {error} = await (writeClient as any).from('favorites').insert({listing_id: listingId, user_id: user.id});
+
+    if (error && error.code !== '23505') {
+      throw new Error(error.message);
+    }
   }
 
   revalidatePath('/');
+  revalidatePath('/favorites');
   revalidatePath(`/listings/${listingId}`);
+
+  if (redirectTo) {
+    redirect(redirectTo);
+  }
 }
 
 export async function addCommentAction(formData: FormData) {

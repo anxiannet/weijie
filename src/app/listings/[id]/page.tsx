@@ -1,8 +1,9 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import {notFound} from 'next/navigation';
-import {ArrowLeft, CalendarDays, Heart, MapPin, MessageCircle, Pencil, TrainFront} from 'lucide-react';
-import {addCommentAction, toggleFavoriteAction} from '@/app/actions';
+import {ArrowLeft, CalendarDays, MapPin, MessageCircle, Pencil, TrainFront} from 'lucide-react';
+import {addCommentAction} from '@/app/actions';
+import {FavoriteButton} from '@/components/FavoriteButton';
 import {Badge} from '@/components/ui/badge';
 import {Button} from '@/components/ui/button';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
@@ -173,14 +174,15 @@ export default async function ListingDetailPage({
                 <CardTitle className="font-headline text-3xl text-primary">S${listing.price_sgd}<span className="text-base font-normal text-muted-foreground"> / 月</span></CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <form action={toggleFavoriteAction}>
-                  <input type="hidden" name="listing_id" value={listing.id} />
-                  <input type="hidden" name="is_favorited" value={String(isFavorited)} />
-                  <Button className="w-full" variant={isFavorited ? 'secondary' : 'default'}>
-                    <Heart className={isFavorited ? 'h-4 w-4 fill-current' : 'h-4 w-4'} />
-                    {isFavorited ? '已收藏' : '收藏房源'}
-                  </Button>
-                </form>
+                <FavoriteButton
+                  listingId={listing.id}
+                  initialIsFavorited={isFavorited}
+                  className="w-full"
+                  size="default"
+                  showLabel
+                  favoritedVariant="secondary"
+                  unfavoritedVariant="default"
+                />
                 <div className="rounded-xl bg-muted/50 p-4 text-sm leading-6 text-muted-foreground">
                   <p className="font-medium text-foreground">发布者</p>
                   <p className="mt-1">{listing.profiles?.display_name || '维界用户'}</p>

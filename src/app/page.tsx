@@ -18,6 +18,7 @@ import {
 import {Badge} from '@/components/ui/badge';
 import {Button} from '@/components/ui/button';
 import {Card, CardContent} from '@/components/ui/card';
+import {FavoriteButton} from '@/components/FavoriteButton';
 import {Input} from '@/components/ui/input';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
 import {
@@ -33,7 +34,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from '@/components/ui/sidebar';
-import {signOutAction, toggleFavoriteAction} from '@/app/actions';
+import {signOutAction} from '@/app/actions';
 import {hasSupabaseConfig} from '@/lib/env';
 import {LISTING_TYPE_LABELS, SCHOOL_OPTIONS} from '@/lib/marketplace';
 import {createSupabaseAdminClient, createSupabaseServerClient} from '@/lib/supabase/server';
@@ -175,6 +176,13 @@ export default async function MarketplaceHome({
                     <a href="#listings">
                       <Home /> <span>房源中心</span>
                     </a>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild tooltip="收藏">
+                    <Link href="/favorites">
+                      <Heart /> <span>我的收藏</span>
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
@@ -459,13 +467,7 @@ export default async function MarketplaceHome({
                                 <h3 className="line-clamp-2 font-headline text-xl font-bold hover:text-primary">{listing.title}</h3>
                               </Link>
                             </div>
-                            <form action={toggleFavoriteAction}>
-                              <input type="hidden" name="listing_id" value={listing.id} />
-                              <input type="hidden" name="is_favorited" value={String(isFavorited)} />
-                              <Button variant="outline" size="icon" aria-label={isFavorited ? '取消收藏' : '收藏房源'}>
-                                <Heart className={isFavorited ? 'h-4 w-4 fill-primary text-primary' : 'h-4 w-4'} />
-                              </Button>
-                            </form>
+                            <FavoriteButton listingId={listing.id} initialIsFavorited={isFavorited} />
                           </div>
                           <p className="mt-3 flex items-center gap-1 text-sm text-muted-foreground">
                             <MapPin className="h-4 w-4" /> {listing.location}
