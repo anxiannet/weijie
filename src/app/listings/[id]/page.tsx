@@ -82,15 +82,25 @@ export default async function ListingDetailPage({
 
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_360px]">
           <div>
-            <div className="grid grid-cols-1 gap-3 overflow-hidden rounded-3xl md:grid-cols-2">
-              <div className="relative aspect-[4/3] bg-muted md:col-span-2">
-                <Image src={images[0]} alt={listing.title} fill priority unoptimized className="object-cover" sizes="(max-width: 768px) 100vw, 900px" />
+            <div className="-mx-4 overflow-x-auto px-4 pb-3 md:-mx-6 md:px-6">
+              <div className="flex snap-x snap-mandatory gap-3">
+                {images.map((image, index) => (
+                  <div
+                    key={image}
+                    className="relative aspect-[4/3] w-[86vw] max-w-[760px] shrink-0 snap-start overflow-hidden rounded-3xl bg-muted sm:w-[72vw] lg:w-[min(760px,calc(100vw-500px))]"
+                  >
+                    <Image
+                      src={image}
+                      alt={`${listing.title} 图片 ${index + 1}`}
+                      fill
+                      priority={index === 0}
+                      unoptimized
+                      className="object-cover"
+                      sizes="(max-width: 640px) 86vw, (max-width: 1024px) 72vw, 760px"
+                    />
+                  </div>
+                ))}
               </div>
-              {images.slice(1, 3).map((image) => (
-                <div key={image} className="relative aspect-[4/3] bg-muted">
-                  <Image src={image} alt={listing.title} fill unoptimized className="object-cover" sizes="450px" />
-                </div>
-              ))}
             </div>
 
             <section className="mt-8">

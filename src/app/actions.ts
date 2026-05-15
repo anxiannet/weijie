@@ -2,7 +2,7 @@
 
 import {revalidatePath} from 'next/cache';
 import {redirect} from 'next/navigation';
-import {createSupabaseServerClient} from '@/lib/supabase/server';
+import {createSupabaseAdminClient, createSupabaseServerClient} from '@/lib/supabase/server';
 import {AMENITY_OPTIONS, parsePositiveNumber} from '@/lib/marketplace';
 import type {ListingType} from '@/lib/supabase/database.types';
 import {toAuthMessage} from '@/app/auth/auth-utils';
@@ -83,6 +83,7 @@ export async function signOutAction() {
 
 export async function createListingAction(formData: FormData) {
   const {supabase, user} = await requireUser();
+  const writeClient = createSupabaseAdminClient() || supabase;
   const price = parsePositiveNumber(formData.get('price_sgd'));
   const title = requireString(formData, 'title');
   const description = requireString(formData, 'description');
@@ -98,7 +99,7 @@ export async function createListingAction(formData: FormData) {
     throw new Error('租金必须大于 0');
   }
 
-  const {data, error} = await (supabase as any)
+  const {data, error} = await (writeClient as any)
     .from('listings')
     .insert({
       owner_id: user.id,

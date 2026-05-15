@@ -152,7 +152,7 @@ export default async function MarketplaceHome({
               </span>
               <span className="flex flex-col">
                 <span className="font-headline font-bold leading-none tracking-tight text-foreground">维界</span>
-                <span className="text-[10px] tracking-widest text-muted-foreground">留学生活系统</span>
+                <span className="text-[10px] tracking-widest text-muted-foreground">新加坡留学生活系统</span>
               </span>
             </Link>
           </SidebarHeader>
@@ -180,7 +180,7 @@ export default async function MarketplaceHome({
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild tooltip="指南">
                     <a href="/guides">
-                      <BookOpen /> <span>留学指南</span>
+                      <BookOpen /> <span>生活指南</span>
                     </a>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

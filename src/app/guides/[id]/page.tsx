@@ -15,7 +15,7 @@ export async function generateMetadata({params}: {params: Promise<{id: string}>}
   const {id} = await params;
   const guide = SETTLE_GUIDES.find((item) => item.id === id);
   return {
-    title: guide ? guide.title : '留学指南',
+    title: guide ? guide.title : '生活指南',
     description: guide?.summary,
   };
 }
@@ -29,10 +29,10 @@ export default async function GuideDetailPage({params}: {params: Promise<{id: st
   }
 
   return (
-    <StaticPageShell active="guides" breadcrumb="指南详情">
+    <StaticPageShell active="guides" breadcrumb="生活指南详情">
       <Button asChild variant="ghost" className="mb-6">
         <Link href="/guides">
-          <ArrowLeft className="h-4 w-4" /> 返回指南
+          <ArrowLeft className="h-4 w-4" /> 返回生活指南
         </Link>
       </Button>
 

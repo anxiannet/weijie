@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   keywords: [
     '新加坡留学',
     '新加坡租房',
-    '新加坡留学指南',
+    '新加坡生活指南',
     '新加坡留学生',
     '新加坡中国留学生',
     '新加坡留学生租房',
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     '新加坡留学生活',
     '新加坡美食',
     '本地化留学信息',
-    '结构化留学指南',
+    '结构化生活指南',
   ],
   alternates: {
     canonical: '/',
