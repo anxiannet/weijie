@@ -15,6 +15,46 @@ function requireString(formData: FormData, key: string) {
   return value.trim();
 }
 
+function toActionErrorMessage(error: unknown) {
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+
+  return '保存失败，请检查内容后重试';
+}
+
+function getListingFormPayload(formData: FormData) {
+  const price = parsePositiveNumber(formData.get('price_sgd'));
+  const title = requireString(formData, 'title');
+  const description = requireString(formData, 'description');
+  const location = requireString(formData, 'location');
+  const listingType = requireString(formData, 'listing_type') as ListingType;
+  const imageUrls = formData
+    .getAll('image_urls')
+    .map((value) => String(value).trim())
+    .filter(Boolean);
+  const selectedAmenities = AMENITY_OPTIONS.filter((amenity) => formData.get(`amenity:${amenity}`));
+
+  if (!price) {
+    throw new Error('租金必须大于 0');
+  }
+
+  return {
+    title,
+    description,
+    location,
+    nearest_school: String(formData.get('nearest_school') || '').trim() || null,
+    mrt_station: String(formData.get('mrt_station') || '').trim() || null,
+    price_sgd: price,
+    bedrooms: parsePositiveNumber(formData.get('bedrooms')),
+    bathrooms: parsePositiveNumber(formData.get('bathrooms')),
+    listing_type: listingType,
+    available_from: String(formData.get('available_from') || '').trim() || null,
+    image_urls: imageUrls,
+    amenities: selectedAmenities,
+  };
+}
+
 async function requireUser() {
   const supabase = await createSupabaseServerClient();
   if (!supabase) {
@@ -84,100 +124,62 @@ export async function signOutAction() {
 export async function createListingAction(formData: FormData) {
   const {supabase, user} = await requireUser();
   const writeClient = createSupabaseAdminClient() || supabase;
-  const price = parsePositiveNumber(formData.get('price_sgd'));
-  const title = requireString(formData, 'title');
-  const description = requireString(formData, 'description');
-  const location = requireString(formData, 'location');
-  const listingType = requireString(formData, 'listing_type') as ListingType;
-  const imageUrls = formData
-    .getAll('image_urls')
-    .map((value) => String(value).trim())
-    .filter(Boolean);
-  const selectedAmenities = AMENITY_OPTIONS.filter((amenity) => formData.get(`amenity:${amenity}`));
 
-  if (!price) {
-    throw new Error('租金必须大于 0');
-  }
+  let listingId: string | null = null;
 
-  const {data, error} = await (writeClient as any)
-    .from('listings')
-    .insert({
-      owner_id: user.id,
-      title,
-      description,
-      location,
-      nearest_school: String(formData.get('nearest_school') || '').trim() || null,
-      mrt_station: String(formData.get('mrt_station') || '').trim() || null,
-      price_sgd: price,
-      bedrooms: parsePositiveNumber(formData.get('bedrooms')),
-      bathrooms: parsePositiveNumber(formData.get('bathrooms')),
-      listing_type: listingType,
-      available_from: String(formData.get('available_from') || '').trim() || null,
-      image_urls: imageUrls,
-      amenities: selectedAmenities,
-      status: 'published',
-    })
-    .select('id')
-    .single();
+  try {
+    const payload = getListingFormPayload(formData);
+    const {data, error} = await (writeClient as any)
+      .from('listings')
+      .insert({
+        owner_id: user.id,
+        ...payload,
+        status: 'published',
+      })
+      .select('id')
+      .single();
 
-  if (error) {
-    throw new Error(error.message);
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    listingId = data.id;
+  } catch (error) {
+    redirect(`/listings/new?error=${encodeURIComponent(toActionErrorMessage(error))}`);
   }
 
   revalidatePath('/');
-  redirect(`/listings/${data.id}`);
+  redirect(`/listings/${listingId}`);
 }
 
 export async function updateListingAction(formData: FormData) {
   const {supabase, user} = await requireUser();
   const writeClient = createSupabaseAdminClient() || supabase;
   const listingId = requireString(formData, 'listing_id');
-  const price = parsePositiveNumber(formData.get('price_sgd'));
-  const title = requireString(formData, 'title');
-  const description = requireString(formData, 'description');
-  const location = requireString(formData, 'location');
-  const listingType = requireString(formData, 'listing_type') as ListingType;
-  const imageUrls = formData
-    .getAll('image_urls')
-    .map((value) => String(value).trim())
-    .filter(Boolean);
-  const selectedAmenities = AMENITY_OPTIONS.filter((amenity) => formData.get(`amenity:${amenity}`));
 
-  if (!price) {
-    throw new Error('租金必须大于 0');
-  }
+  try {
+    const payload = getListingFormPayload(formData);
+    const {data: listing, error: listingError} = await (supabase as any)
+      .from('listings')
+      .select('id, owner_id')
+      .eq('id', listingId)
+      .single();
 
-  const {data: listing, error: listingError} = await (supabase as any)
-    .from('listings')
-    .select('id, owner_id')
-    .eq('id', listingId)
-    .single();
+    if (listingError || !listing || listing.owner_id !== user.id) {
+      throw new Error('只能修改自己发布的房源');
+    }
 
-  if (listingError || !listing || listing.owner_id !== user.id) {
-    throw new Error('只能修改自己发布的房源');
-  }
+    const {error} = await (writeClient as any)
+      .from('listings')
+      .update(payload)
+      .eq('id', listingId)
+      .eq('owner_id', user.id);
 
-  const {error} = await (writeClient as any)
-    .from('listings')
-    .update({
-      title,
-      description,
-      location,
-      nearest_school: String(formData.get('nearest_school') || '').trim() || null,
-      mrt_station: String(formData.get('mrt_station') || '').trim() || null,
-      price_sgd: price,
-      bedrooms: parsePositiveNumber(formData.get('bedrooms')),
-      bathrooms: parsePositiveNumber(formData.get('bathrooms')),
-      listing_type: listingType,
-      available_from: String(formData.get('available_from') || '').trim() || null,
-      image_urls: imageUrls,
-      amenities: selectedAmenities,
-    })
-    .eq('id', listingId)
-    .eq('owner_id', user.id);
-
-  if (error) {
-    throw new Error(error.message);
+    if (error) {
+      throw new Error(error.message);
+    }
+  } catch (error) {
+    redirect(`/listings/${listingId}/edit?error=${encodeURIComponent(toActionErrorMessage(error))}`);
   }
 
   revalidatePath('/');

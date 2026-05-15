@@ -18,10 +18,13 @@ export const dynamic = 'force-dynamic';
 
 export default async function EditListingPage({
   params,
+  searchParams,
 }: {
   params: Promise<{id: string}>;
+  searchParams: Promise<{error?: string}>;
 }) {
   const {id} = await params;
+  const {error: formError} = await searchParams;
   const supabase = await createSupabaseServerClient();
 
   if (!supabase) {
@@ -51,6 +54,8 @@ export default async function EditListingPage({
   }
 
   const currentListing = listing as Listing;
+  const imageUrls = Array.isArray(currentListing.image_urls) ? currentListing.image_urls : [];
+  const amenities = Array.isArray(currentListing.amenities) ? currentListing.amenities : [];
 
   return (
     <main className="min-h-screen bg-muted/40 px-4 py-8">
@@ -65,6 +70,11 @@ export default async function EditListingPage({
             <CardTitle className="font-headline text-3xl">更新房源信息与照片</CardTitle>
           </CardHeader>
           <CardContent>
+            {formError && (
+              <div className="mb-6 rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-sm leading-6 text-destructive">
+                {formError}
+              </div>
+            )}
             <form action={updateListingAction} className="space-y-8">
               <input type="hidden" name="listing_id" value={currentListing.id} />
 
@@ -135,7 +145,7 @@ export default async function EditListingPage({
                       <input
                         name={`amenity:${amenity}`}
                         type="checkbox"
-                        defaultChecked={currentListing.amenities.includes(amenity)}
+                        defaultChecked={amenities.includes(amenity)}
                         className="h-4 w-4 accent-primary"
                       />
                       {amenity}
@@ -146,7 +156,7 @@ export default async function EditListingPage({
 
               <div className="space-y-3">
                 <Label>图片</Label>
-                <ListingImageUpload initialImageUrls={currentListing.image_urls} />
+                <ListingImageUpload initialImageUrls={imageUrls} />
               </div>
 
               <Button size="lg" className="w-full">保存修改</Button>

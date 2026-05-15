@@ -15,7 +15,12 @@ import {createSupabaseServerClient} from '@/lib/supabase/server';
 
 export const dynamic = 'force-dynamic';
 
-export default async function NewListingPage() {
+export default async function NewListingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{error?: string}>;
+}) {
+  const {error} = await searchParams;
   const supabase = await createSupabaseServerClient();
   const {
     data: {user},
@@ -41,6 +46,11 @@ export default async function NewListingPage() {
             {!supabase && (
               <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-950">
                 缺少 Supabase 环境变量。发布功能已接入真实数据源，配置完成后即可使用。
+              </div>
+            )}
+            {error && (
+              <div className="mb-6 rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-sm leading-6 text-destructive">
+                {error}
               </div>
             )}
 

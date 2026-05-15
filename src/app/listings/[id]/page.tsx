@@ -72,7 +72,9 @@ export default async function ListingDetailPage({
 
   const isFavorited = Boolean(listing.favorites?.some((favorite) => favorite.user_id === userId));
   const canEdit = listing.owner_id === userId;
-  const images = listing.image_urls.length > 0 ? listing.image_urls : ['/weijie-logo-wordmark.png'];
+  const imageUrls = Array.isArray(listing.image_urls) ? listing.image_urls : [];
+  const amenities = Array.isArray(listing.amenities) ? listing.amenities : [];
+  const images = imageUrls.length > 0 ? imageUrls : ['/weijie-logo-wordmark.png'];
 
   return (
     <main className="min-h-screen bg-background">
@@ -117,11 +119,11 @@ export default async function ListingDetailPage({
               </div>
               <p className="mt-8 whitespace-pre-line text-lg leading-8 text-muted-foreground">{listing.description}</p>
 
-              {listing.amenities.length > 0 && (
+              {amenities.length > 0 && (
                 <div className="mt-8">
                   <h2 className="font-headline text-2xl font-bold">设施与规则</h2>
                   <div className="mt-4 flex flex-wrap gap-2">
-                    {listing.amenities.map((amenity) => (
+                    {amenities.map((amenity) => (
                       <Badge key={amenity} variant="outline" className="rounded-md px-3 py-1">{amenity}</Badge>
                     ))}
                   </div>
