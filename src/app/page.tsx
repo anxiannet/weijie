@@ -7,7 +7,7 @@ import {
   GraduationCap,
   Heart,
   Home,
-  LayoutDashboard,
+  Info,
   LogOut,
   MapPin,
   Plus,
@@ -35,10 +35,9 @@ import {
   SidebarTrigger,
 } from '@/components/ui/sidebar';
 import {signOutAction} from '@/app/actions';
-import {hasSupabaseConfig} from '@/lib/env';
 import {LISTING_TYPE_LABELS, SCHOOL_OPTIONS} from '@/lib/marketplace';
 import {createSupabaseAdminClient, createSupabaseServerClient} from '@/lib/supabase/server';
-import type {ListingWithOwner} from '@/lib/supabase/database.types';
+import type {Favorite, ListingWithOwner} from '@/lib/supabase/database.types';
 
 export const dynamic = 'force-dynamic';
 
@@ -54,6 +53,10 @@ type CurrentUser = {
   displayName: string;
 };
 
+type FavoriteListing = Favorite & {
+  listings: ListingWithOwner | null;
+};
+
 function getParam(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
 }
@@ -61,7 +64,13 @@ function getParam(value: string | string[] | undefined) {
 async function getMarketplaceData(filters: HomeSearchParams) {
   const supabase = await createSupabaseServerClient();
   if (!supabase) {
-    return {currentUser: null, listings: [] as ListingWithOwner[], configReady: false, schemaReady: false};
+    return {
+      currentUser: null,
+      listings: [] as ListingWithOwner[],
+      favoriteListings: [] as ListingWithOwner[],
+      configReady: false,
+      schemaReady: false,
+    };
   }
 
   const {
@@ -84,6 +93,32 @@ async function getMarketplaceData(filters: HomeSearchParams) {
       id: user.id,
       displayName: profileName || metadataName || user.email?.split('@')[0] || '维界用户',
     };
+  }
+
+  let favoriteListings: ListingWithOwner[] = [];
+
+  if (user) {
+    const {data: favoritesData, error: favoritesError} = await (readClient as any)
+      .from('favorites')
+      .select(
+        'user_id, listing_id, created_at, listings(*, profiles!listings_owner_id_fkey(display_name, phone, avatar_url), favorites(user_id, listing_id, created_at))'
+      )
+      .eq('user_id', user.id)
+      .order('created_at', {ascending: false});
+
+    if (favoritesError) {
+      return {
+        currentUser,
+        listings: [] as ListingWithOwner[],
+        favoriteListings: [] as ListingWithOwner[],
+        configReady: true,
+        schemaReady: false,
+      };
+    }
+
+    favoriteListings = ((favoritesData || []) as FavoriteListing[])
+      .map((favorite) => favorite.listings)
+      .filter((listing): listing is ListingWithOwner => Boolean(listing && listing.status === 'published'));
   }
 
   let query = readClient
@@ -115,6 +150,7 @@ async function getMarketplaceData(filters: HomeSearchParams) {
     return {
       currentUser,
       listings: [] as ListingWithOwner[],
+      favoriteListings,
       configReady: true,
       schemaReady: false,
     };
@@ -123,9 +159,52 @@ async function getMarketplaceData(filters: HomeSearchParams) {
   return {
     currentUser,
     listings: (data || []) as ListingWithOwner[],
+    favoriteListings,
     configReady: true,
     schemaReady: true,
   };
+}
+
+function ListingCard({
+  listing,
+  currentUser,
+  refreshFavoriteOnComplete = false,
+}: {
+  listing: ListingWithOwner;
+  currentUser: CurrentUser | null;
+  refreshFavoriteOnComplete?: boolean;
+}) {
+  const isFavorited = Boolean(listing.favorites?.some((favorite) => favorite.user_id === currentUser?.id));
+  const imageUrl = listing.image_urls[0] || '/weijie-logo-wordmark.png';
+
+  return (
+    <Card className="group overflow-hidden transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md">
+      <Link href={`/listings/${listing.id}`} className="block">
+        <div className="relative aspect-[4/3] bg-muted">
+          <Image src={imageUrl} alt={listing.title} fill unoptimized className="object-cover transition-transform duration-300 group-hover:scale-[1.03]" sizes="(max-width: 768px) 100vw, 33vw" />
+        </div>
+      </Link>
+      <CardContent className="p-5">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <Badge variant="secondary" className="rounded-md">{LISTING_TYPE_LABELS[listing.listing_type]}</Badge>
+            <Link href={`/listings/${listing.id}`} className="mt-3 block">
+              <h3 className="line-clamp-2 font-headline text-xl font-bold hover:text-primary">{listing.title}</h3>
+            </Link>
+          </div>
+          <FavoriteButton listingId={listing.id} initialIsFavorited={isFavorited} refreshOnComplete={refreshFavoriteOnComplete} />
+        </div>
+        <p className="mt-3 flex items-center gap-1 text-sm text-muted-foreground">
+          <MapPin className="h-4 w-4" /> {listing.location}
+        </p>
+        <div className="mt-4 flex items-center justify-between">
+          <p className="font-headline text-2xl font-bold text-primary">S${listing.price_sgd}</p>
+          <p className="text-sm text-muted-foreground">每月</p>
+        </div>
+        <p className="mt-4 line-clamp-2 text-sm leading-6 text-muted-foreground">{listing.description}</p>
+      </CardContent>
+    </Card>
+  );
 }
 
 export default async function MarketplaceHome({
@@ -140,7 +219,7 @@ export default async function MarketplaceHome({
     type: getParam(params.type) || 'all',
     max: getParam(params.max) || '',
   };
-  const {currentUser, listings, configReady, schemaReady} = await getMarketplaceData(filters);
+  const {currentUser, listings, favoriteListings, configReady, schemaReady} = await getMarketplaceData(filters);
 
   return (
     <SidebarProvider>
@@ -165,9 +244,9 @@ export default async function MarketplaceHome({
               </SidebarGroupLabel>
               <SidebarMenu>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive tooltip="控制台">
+                  <SidebarMenuButton asChild isActive tooltip="收藏">
                     <a href="#overview">
-                      <LayoutDashboard /> <span>主控制台</span>
+                      <Heart /> <span>我的收藏</span>
                     </a>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -179,16 +258,16 @@ export default async function MarketplaceHome({
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="收藏">
-                    <Link href="/favorites">
-                      <Heart /> <span>我的收藏</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
                   <SidebarMenuButton asChild tooltip="指南">
                     <a href="/guides">
                       <BookOpen /> <span>生活指南</span>
+                    </a>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild tooltip="关于维界">
+                    <a href="/about">
+                      <Info /> <span>关于维界</span>
                     </a>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -271,118 +350,50 @@ export default async function MarketplaceHome({
           </header>
 
           <div className="mx-auto max-w-7xl p-4 md:p-8">
-            <section id="overview" className="home-intro-section overflow-hidden rounded-3xl border bg-card shadow-sm">
-              <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.12fr)_minmax(320px,0.88fr)]">
-                <div className="p-6 md:p-10">
-                  <div className="relative h-24 w-full max-w-md md:h-28">
-                    <Image
-                      src="/weijie-logo-wordmark.png"
-                      alt="维界标志"
-                      fill
-                      priority
-                      className="object-contain object-left"
-                      sizes="(max-width: 768px) 90vw, 420px"
-                    />
-                  </div>
-                  <div className="mt-2 flex flex-wrap items-center gap-3">
-                    <Badge className="rounded-md bg-primary text-primary-foreground">维界</Badge>
-                    <span className="text-sm font-medium text-muted-foreground">新加坡留学生活，一站到位。</span>
-                  </div>
-                  <h1 className="mt-6 font-headline text-4xl font-bold leading-tight text-foreground md:text-5xl">
-                    新加坡留学生活系统
-                  </h1>
-                  <p className="mt-6 max-w-2xl text-lg leading-8 text-muted-foreground">
-                    租房、学校、美食、活动与本地生活信息，帮助中国留学生快速适应新加坡。
-                  </p>
-                  <p className="mt-4 max-w-2xl text-base leading-7 text-muted-foreground">
-                    维界把留学生真正需要的内容整理成清晰、可信、可持续使用的平台。从租房，到学校，再到生活与社交，帮助你更轻松地开始在新加坡的每一天。
-                  </p>
-                  <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                    <Button asChild size="lg">
-                      <Link href="/listings/new">
-                        开始发布 <Plus className="h-4 w-4" />
-                      </Link>
-                    </Button>
-                    <Button asChild size="lg" variant="outline">
-                      <a href="#listings">
-                        浏览房源 <Home className="h-4 w-4" />
-                      </a>
-                    </Button>
-                  </div>
+            <section id="overview" className="space-y-6">
+              <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+                <div className="flex flex-col gap-2">
+                  <Badge variant="secondary" className="w-fit rounded-md">我的收藏</Badge>
+                  <h1 className="font-headline text-3xl font-bold leading-tight text-foreground md:text-4xl">收藏房源</h1>
+                  <p className="max-w-2xl text-muted-foreground">先查看已经保存的房源，再继续比较新的租房选择。</p>
                 </div>
-                <div className="border-t bg-muted/50 p-6 md:p-10 lg:border-l lg:border-t-0">
-                  <p className="text-sm font-semibold uppercase tracking-wider text-primary">平台状态</p>
-                  <p className="mt-4 text-lg leading-8 text-foreground">
-                    维界诞生于留学生真实的生活需求。留学不只是学习，更是一种全新的生活方式。
-                  </p>
-                  <div className="mt-6 grid grid-cols-1 gap-4">
-                    {[
-                      ['房源', `${listings.length} 个已发布房源`],
-                      ['认证', currentUser ? `已登录：${currentUser.displayName}` : '支持登录与注册'],
-                      ['社区', '通过结构化信息与真实内容建立归属感'],
-                    ].map(([title, body]) => (
-                      <div key={title} className="rounded-2xl border bg-background p-5">
-                        <p className="text-sm font-semibold text-foreground">{title}</p>
-                        <p className="mt-2 text-sm leading-6 text-muted-foreground">{body}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            <section className="home-intro-section mt-8 grid grid-cols-1 gap-6 lg:grid-cols-[0.95fr_1.05fr]">
-              <div className="rounded-3xl border bg-card p-6 shadow-sm md:p-8">
-                <Badge variant="secondary" className="rounded-md">关于维界</Badge>
-                <h2 className="mt-5 font-headline text-3xl font-bold text-foreground">连接留学生活的每一步</h2>
-                <p className="mt-5 text-base leading-7 text-muted-foreground">
-                  维界诞生于留学生真实的生活需求。我们相信，留学不只是学习，更是一种全新的生活方式。
-                </p>
-                <p className="mt-4 text-base leading-7 text-muted-foreground">
-                  维界希望通过结构化的信息与真实的社区内容，让每一位来到新加坡的中国学生，都能更快找到归属感。
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                {[
-                  {
-                    title: '租房',
-                    body: '查看真实房源、学生公寓与合租信息，快速找到适合自己的住所。',
-                    href: '#listings',
-                    icon: Home,
-                  },
-                  {
-                    title: '学校',
-                    body: '了解新加坡高校、课程强度、生活体验与学生评价。',
-                    href: '/schools',
-                    icon: GraduationCap,
-                  },
-                  {
-                    title: '美食',
-                    body: '发现适合中国留学生口味的新加坡餐厅、食阁与平价美食。',
-                    href: '/food',
-                    icon: Utensils,
-                  },
-                  {
-                    title: '活动',
-                    body: '获取校园活动、聚会、兼职与本地社交信息。',
-                    href: '/events',
-                    icon: Calendar,
-                  },
-                ].map((module) => {
-                  const Icon = module.icon;
-
-                  return (
-                    <Link key={module.title} href={module.href} className="group rounded-3xl border bg-card p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md">
-                      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                        <Icon className="h-5 w-5" />
-                      </span>
-                      <h3 className="mt-4 font-headline text-xl font-bold text-foreground group-hover:text-primary">{module.title}</h3>
-                      <p className="mt-3 text-sm leading-6 text-muted-foreground">{module.body}</p>
+                <div className="flex items-center gap-3">
+                  <p className="text-sm text-muted-foreground">{currentUser ? `${favoriteListings.length} 个收藏` : '登录后显示收藏'}</p>
+                  <Button asChild>
+                    <Link href="/listings/new">
+                      <Plus className="h-4 w-4" /> 发布房源
                     </Link>
-                  );
-                })}
+                  </Button>
+                </div>
               </div>
+
+              {!currentUser ? (
+                <div className="rounded-2xl border border-dashed bg-card p-8 text-center">
+                  <Heart className="mx-auto h-10 w-10 text-muted-foreground" />
+                  <p className="mt-4 font-semibold">登录后查看收藏房源</p>
+                  <p className="mt-2 text-sm text-muted-foreground">收藏会同步到你的账户，方便之后继续比较。</p>
+                  <Button asChild className="mt-6">
+                    <Link href="/auth">登录</Link>
+                  </Button>
+                </div>
+              ) : favoriteListings.length === 0 ? (
+                <div className="rounded-2xl border border-dashed bg-card p-8 text-center">
+                  <Heart className="mx-auto h-10 w-10 text-muted-foreground" />
+                  <p className="mt-4 font-semibold">还没有收藏房源</p>
+                  <p className="mt-2 text-sm text-muted-foreground">浏览房源时点击心形按钮，就可以把它保存到这里。</p>
+                  <Button asChild variant="outline" className="mt-6">
+                    <a href="#listings">
+                      <Home className="h-4 w-4" /> 浏览房源
+                    </a>
+                  </Button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                  {favoriteListings.map((listing) => (
+                    <ListingCard key={listing.id} listing={listing} currentUser={currentUser} refreshFavoriteOnComplete />
+                  ))}
+                </div>
+              )}
             </section>
 
             <section id="listings" className="mt-8 space-y-6">
@@ -448,46 +459,15 @@ export default async function MarketplaceHome({
                 </div>
               ) : (
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                  {listings.map((listing) => {
-                    const isFavorited = Boolean(listing.favorites?.some((favorite) => favorite.user_id === currentUser?.id));
-                    const imageUrl = listing.image_urls[0] || '/weijie-logo-wordmark.png';
-
-                    return (
-                      <Card key={listing.id} className="group overflow-hidden transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md">
-                        <Link href={`/listings/${listing.id}`} className="block">
-                          <div className="relative aspect-[4/3] bg-muted">
-                            <Image src={imageUrl} alt={listing.title} fill unoptimized className="object-cover transition-transform duration-300 group-hover:scale-[1.03]" sizes="(max-width: 768px) 100vw, 33vw" />
-                          </div>
-                        </Link>
-                        <CardContent className="p-5">
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="min-w-0">
-                              <Badge variant="secondary" className="rounded-md">{LISTING_TYPE_LABELS[listing.listing_type]}</Badge>
-                              <Link href={`/listings/${listing.id}`} className="mt-3 block">
-                                <h3 className="line-clamp-2 font-headline text-xl font-bold hover:text-primary">{listing.title}</h3>
-                              </Link>
-                            </div>
-                            <FavoriteButton listingId={listing.id} initialIsFavorited={isFavorited} />
-                          </div>
-                          <p className="mt-3 flex items-center gap-1 text-sm text-muted-foreground">
-                            <MapPin className="h-4 w-4" /> {listing.location}
-                          </p>
-                          <div className="mt-4 flex items-center justify-between">
-                            <p className="font-headline text-2xl font-bold text-primary">S${listing.price_sgd}</p>
-                            <p className="text-sm text-muted-foreground">每月</p>
-                          </div>
-                          <p className="mt-4 line-clamp-2 text-sm leading-6 text-muted-foreground">{listing.description}</p>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
+                  {listings.map((listing) => (
+                    <ListingCard key={listing.id} listing={listing} currentUser={currentUser} />
+                  ))}
                 </div>
               )}
             </section>
 
             <footer className="mt-10 border-t pt-6 text-sm text-muted-foreground">
               <p className="font-medium text-foreground">维界 · 新加坡留学生活系统</p>
-              <p className="mt-1">清晰、可信、本地化、结构化，面向长期使用而设计。</p>
             </footer>
           </div>
         </main>
