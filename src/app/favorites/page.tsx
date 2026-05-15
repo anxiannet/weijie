@@ -111,7 +111,7 @@ export default async function FavoritesPage() {
               const imageUrl = listing.image_urls[0] || '/weijie-logo-wordmark.png';
 
               return (
-                <Card key={favorite.listing_id} className="group overflow-hidden transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md">
+                <Card key={favorite.listing_id} className="group relative overflow-hidden transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md">
                   <Link href={`/listings/${listing.id}`} className="block">
                     <div className="relative aspect-[4/3] bg-muted">
                       <Image
@@ -129,19 +129,19 @@ export default async function FavoritesPage() {
                         {listing.nearest_school && (
                           <Badge variant="secondary" className="rounded-md bg-background/90 shadow-sm backdrop-blur">
                             {listing.nearest_school}
-                          </Badge>
-                        )}
-                      </div>
-                      <div className="absolute right-3 top-3">
-                        <FavoriteButton listingId={listing.id} initialIsFavorited refreshOnComplete />
-                      </div>
-                      <div className="absolute bottom-3 right-3">
-                        <div className="rounded-md bg-background/90 px-3 py-1.5 text-sm font-semibold text-primary shadow-sm backdrop-blur">
-                          每月 {listing.price_sgd} 新币
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="absolute bottom-3 right-3">
+                          <div className="rounded-md bg-background/90 px-3 py-1.5 text-sm font-semibold text-primary shadow-sm backdrop-blur">
+                            每月 {listing.price_sgd} 新币
                         </div>
                       </div>
                     </div>
                   </Link>
+                  <div className="absolute right-3 top-3 z-10">
+                    <FavoriteButton listingId={listing.id} initialIsFavorited refreshOnComplete />
+                  </div>
                   <CardContent className="p-4">
                     <Link href={`/listings/${listing.id}`} className="block">
                       <h2 className="line-clamp-2 font-headline text-base font-semibold leading-snug hover:text-primary">{listing.title}</h2>

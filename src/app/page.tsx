@@ -144,7 +144,7 @@ function ListingCard({
   const imageUrl = listing.image_urls[0] || '/weijie-logo-wordmark.png';
 
   return (
-    <Card className="group overflow-hidden transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md">
+    <Card className="group relative overflow-hidden transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md">
       <Link href={`/listings/${listing.id}`} className="block">
         <div className="relative aspect-[4/3] bg-muted">
           <Image src={imageUrl} alt={listing.title} fill unoptimized className="object-cover transition-transform duration-300 group-hover:scale-[1.03]" sizes="(max-width: 768px) 100vw, 33vw" />
@@ -158,9 +158,6 @@ function ListingCard({
               </Badge>
             )}
           </div>
-          <div className="absolute right-3 top-3">
-            <FavoriteButton listingId={listing.id} initialIsFavorited={isFavorited} refreshOnComplete={refreshFavoriteOnComplete} />
-          </div>
           <div className="absolute bottom-3 right-3">
             <div className="rounded-md bg-background/90 px-3 py-1.5 text-sm font-semibold text-primary shadow-sm backdrop-blur">
               每月 {listing.price_sgd} 新币
@@ -168,6 +165,9 @@ function ListingCard({
           </div>
         </div>
       </Link>
+      <div className="absolute right-3 top-3 z-10">
+        <FavoriteButton listingId={listing.id} initialIsFavorited={isFavorited} refreshOnComplete={refreshFavoriteOnComplete} />
+      </div>
       <CardContent className="p-4">
         <Link href={`/listings/${listing.id}`} className="block">
           <h3 className="line-clamp-2 font-headline text-base font-semibold leading-snug hover:text-primary">{listing.title}</h3>
