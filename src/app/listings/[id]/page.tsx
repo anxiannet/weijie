@@ -4,6 +4,7 @@ import {notFound} from 'next/navigation';
 import {ArrowLeft, CalendarDays, MapPin, MessageCircle, Pencil, TrainFront} from 'lucide-react';
 import {addCommentAction} from '@/app/actions';
 import {FavoriteButton} from '@/components/FavoriteButton';
+import {SubmitButton} from '@/components/SubmitButton';
 import {Badge} from '@/components/ui/badge';
 import {Button} from '@/components/ui/button';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
@@ -60,7 +61,7 @@ export default async function ListingDetailPage({
   const {id} = await params;
   const paramsValue = searchParams ? await searchParams : {};
   const commentError = typeof paramsValue.comment_error === 'string' ? paramsValue.comment_error : '';
-  const commentPosted = paramsValue.comment === 'posted';
+  const commentPosted = paramsValue.comment === 'posted' || paramsValue.comment === 'duplicate';
   const {listing, comments, userId, configReady} = await getListing(id);
 
   if (!configReady) {
@@ -157,7 +158,7 @@ export default async function ListingDetailPage({
                     <form action={addCommentAction} className="space-y-3">
                       <input type="hidden" name="listing_id" value={listing.id} />
                       <Textarea name="body" placeholder="向发布者询问看房时间、费用包含项或合同细节。" required />
-                      <Button>发布留言</Button>
+                      <SubmitButton idleText="发布留言" pendingText="发布中..." />
                     </form>
                   ) : (
                     <div className="rounded-xl border bg-muted/40 p-4 text-sm text-muted-foreground">

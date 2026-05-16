@@ -257,10 +257,13 @@ export async function toggleFavoriteAction(formData: FormData) {
 
 export async function addCommentAction(formData: FormData) {
   const {supabase, user} = await requireUser();
-  const writeClient = createSupabaseAdminClient() || supabase;
+  const adminClient = createSupabaseAdminClient();
+  const writeClient = adminClient || supabase;
+  const readClient = adminClient || supabase;
   const listingId = requireString(formData, 'listing_id');
   const body = requireString(formData, 'body');
   let actionError: string | null = null;
+  let isRecentDuplicate = false;
 
   try {
     await ensureProfile(user);
@@ -279,14 +282,32 @@ export async function addCommentAction(formData: FormData) {
       throw new Error('这条房源暂时不能留言');
     }
 
-    const {error} = await (writeClient as any).from('comments').insert({
-      listing_id: listingId,
-      user_id: user.id,
-      body,
-    });
+    const duplicateWindowStart = new Date(Date.now() - 30_000).toISOString();
+    const {data: recentComment, error: recentCommentError} = await (readClient as any)
+      .from('comments')
+      .select('id')
+      .eq('listing_id', listingId)
+      .eq('user_id', user.id)
+      .eq('body', body)
+      .gte('created_at', duplicateWindowStart)
+      .maybeSingle();
 
-    if (error) {
-      throw new Error(error.message);
+    if (recentCommentError) {
+      throw new Error(recentCommentError.message);
+    }
+
+    if (recentComment) {
+      isRecentDuplicate = true;
+    } else {
+      const {error} = await (writeClient as any).from('comments').insert({
+        listing_id: listingId,
+        user_id: user.id,
+        body,
+      });
+
+      if (error) {
+        throw new Error(error.message);
+      }
     }
   } catch (error) {
     actionError = toActionErrorMessage(error);
@@ -298,5 +319,5 @@ export async function addCommentAction(formData: FormData) {
     redirect(`/listings/${listingId}?comment_error=${encodeURIComponent(actionError)}#comments`);
   }
 
-  redirect(`/listings/${listingId}?comment=posted#comments`);
+  redirect(`/listings/${listingId}?comment=${isRecentDuplicate ? 'duplicate' : 'posted'}#comments`);
 }
