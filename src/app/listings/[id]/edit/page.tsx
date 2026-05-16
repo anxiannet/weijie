@@ -43,7 +43,7 @@ export default async function EditListingPage({
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect('/auth');
+    redirect(`/auth?next=/listings/${id}/edit&message=登录后可以编辑房源`);
   }
 
   const readClient = createSupabaseAdminClient() || supabase;

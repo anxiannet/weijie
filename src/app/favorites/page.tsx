@@ -28,7 +28,7 @@ async function getFavoriteListings() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect('/auth?message=登录后可以查看收藏房源');
+    redirect('/auth?next=/favorites&message=登录后可以查看收藏房源');
   }
 
   const readClient = createSupabaseAdminClient() || supabase;

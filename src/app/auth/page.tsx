@@ -1,7 +1,10 @@
 import Link from 'next/link';
+import {redirect} from 'next/navigation';
 import {Button} from '@/components/ui/button';
 import {Card, CardContent} from '@/components/ui/card';
 import {hasSupabaseConfig} from '@/lib/env';
+import {createSupabaseServerClient} from '@/lib/supabase/server';
+import {getSafeRedirectPath} from './auth-utils';
 import {AuthForms} from './AuthForms';
 
 export const dynamic = 'force-dynamic';
@@ -14,6 +17,15 @@ export default async function AuthPage({
   const params = (await searchParams) || {};
   const error = Array.isArray(params.error) ? params.error[0] : params.error;
   const message = Array.isArray(params.message) ? params.message[0] : params.message;
+  const nextPath = getSafeRedirectPath(params.next);
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: {user},
+  } = supabase ? await supabase.auth.getUser() : {data: {user: null}};
+
+  if (user) {
+    redirect(nextPath);
+  }
 
   return (
     <main className="min-h-screen bg-muted/40 px-4 py-8">
@@ -22,7 +34,7 @@ export default async function AuthPage({
           <Link href="/">返回首页</Link>
         </Button>
         <div className="mx-auto max-w-xl">
-          <AuthForms canSubmit={hasSupabaseConfig()} />
+          <AuthForms canSubmit={hasSupabaseConfig()} redirectTo={nextPath} />
         </div>
 
         {(error || message || !hasSupabaseConfig()) && (

@@ -196,18 +196,28 @@ const comments = [
     id: '20000000-0000-4000-8000-000000000001',
     listing_id: listings[0].id,
     user_id: profiles[1].id,
+    parent_id: null,
     body: '请问可以接受 8 月开学前入住吗？如果需要线上看房，可以提前安排。',
+  },
+  {
+    id: '20000000-0000-4000-8000-000000000004',
+    listing_id: listings[0].id,
+    user_id: profiles[0].id,
+    parent_id: '20000000-0000-4000-8000-000000000001',
+    body: '可以，8 月前入住可提前预留。线上看房建议提前一天约时间。',
   },
   {
     id: '20000000-0000-4000-8000-000000000002',
     listing_id: listings[1].id,
     user_id: profiles[0].id,
+    parent_id: null,
     body: '这个位置适合南洋理工大学新生，建议确认校车和晚间公交时间。',
   },
   {
     id: '20000000-0000-4000-8000-000000000003',
     listing_id: listings[2].id,
     user_id: profiles[2].id,
+    parent_id: null,
     body: '整套适合两位同学合租，合同和押金条款可以在看房后确认。',
   },
 ];

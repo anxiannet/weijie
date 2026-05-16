@@ -23,6 +23,17 @@ function toActionErrorMessage(error: unknown) {
   return '保存失败，请检查内容后重试';
 }
 
+function isMissingCommentParentColumnError(error: unknown) {
+  if (!error || typeof error !== 'object') {
+    return false;
+  }
+
+  const message = 'message' in error ? String(error.message) : '';
+  const code = 'code' in error ? String(error.code) : '';
+
+  return code === '42703' || message.includes('comments.parent_id') || message.includes('parent_id');
+}
+
 function getListingFormPayload(formData: FormData) {
   const price = parsePositiveNumber(formData.get('price_sgd'));
   const title = requireString(formData, 'title');
@@ -262,6 +273,8 @@ export async function addCommentAction(formData: FormData) {
   const readClient = adminClient || supabase;
   const listingId = requireString(formData, 'listing_id');
   const body = requireString(formData, 'body');
+  const parentValue = formData.get('parent_id');
+  const parentCommentId = typeof parentValue === 'string' && parentValue ? parentValue : null;
   let actionError: string | null = null;
   let isRecentDuplicate = false;
 
@@ -282,15 +295,53 @@ export async function addCommentAction(formData: FormData) {
       throw new Error('这条房源暂时不能留言');
     }
 
+    if (parentCommentId) {
+      const {data: parentComment, error: parentCommentError} = await (readClient as any)
+        .from('comments')
+        .select('id, listing_id')
+        .eq('id', parentCommentId)
+        .eq('listing_id', listingId)
+        .maybeSingle();
+
+      if (parentCommentError) {
+        throw new Error(parentCommentError.message);
+      }
+
+      if (!parentComment) {
+        throw new Error('要回复的留言不存在');
+      }
+    }
+
     const duplicateWindowStart = new Date(Date.now() - 30_000).toISOString();
-    const {data: recentComment, error: recentCommentError} = await (readClient as any)
+    let recentCommentQuery = (readClient as any)
       .from('comments')
       .select('id')
       .eq('listing_id', listingId)
       .eq('user_id', user.id)
       .eq('body', body)
-      .gte('created_at', duplicateWindowStart)
-      .maybeSingle();
+      .gte('created_at', duplicateWindowStart);
+
+    if (parentCommentId) {
+      recentCommentQuery.eq('parent_id', parentCommentId);
+    } else {
+      recentCommentQuery.is('parent_id', null);
+    }
+
+    let {data: recentComment, error: recentCommentError} = await recentCommentQuery.maybeSingle();
+
+    if (!parentCommentId && isMissingCommentParentColumnError(recentCommentError)) {
+      recentCommentQuery = (readClient as any)
+        .from('comments')
+        .select('id')
+        .eq('listing_id', listingId)
+        .eq('user_id', user.id)
+        .eq('body', body)
+        .gte('created_at', duplicateWindowStart);
+
+      const fallbackResult = await recentCommentQuery.maybeSingle();
+      recentComment = fallbackResult.data;
+      recentCommentError = fallbackResult.error;
+    }
 
     if (recentCommentError) {
       throw new Error(recentCommentError.message);
@@ -299,11 +350,35 @@ export async function addCommentAction(formData: FormData) {
     if (recentComment) {
       isRecentDuplicate = true;
     } else {
-      const {error} = await (writeClient as any).from('comments').insert({
+      const commentPayload: {
+        listing_id: string;
+        user_id: string;
+        body: string;
+        parent_id?: string | null;
+      } = {
         listing_id: listingId,
         user_id: user.id,
         body,
-      });
+      };
+
+      if (parentCommentId) {
+        commentPayload.parent_id = parentCommentId;
+      }
+
+      let {error} = await (writeClient as any).from('comments').insert(commentPayload);
+
+      if (!parentCommentId && isMissingCommentParentColumnError(error)) {
+        const fallbackResult = await (writeClient as any).from('comments').insert({
+          listing_id: listingId,
+          user_id: user.id,
+          body,
+        });
+        error = fallbackResult.error;
+      }
+
+      if (parentCommentId && isMissingCommentParentColumnError(error)) {
+        throw new Error('数据库还没有执行留言回复迁移，请先在 Supabase 添加 comments.parent_id');
+      }
 
       if (error) {
         throw new Error(error.message);

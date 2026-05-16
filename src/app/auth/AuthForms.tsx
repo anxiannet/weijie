@@ -10,9 +10,10 @@ import {SubmitButton} from './SubmitButton';
 
 type AuthFormsProps = {
   canSubmit: boolean;
+  redirectTo: string;
 };
 
-export function AuthForms({canSubmit}: AuthFormsProps) {
+export function AuthForms({canSubmit, redirectTo}: AuthFormsProps) {
   const [mode, setMode] = useState<'sign-in' | 'sign-up'>('sign-in');
   const isSignIn = mode === 'sign-in';
 
@@ -51,6 +52,7 @@ export function AuthForms({canSubmit}: AuthFormsProps) {
       <CardContent>
         {isSignIn ? (
           <form action="/auth/sign-in" method="post" className="space-y-4">
+            <input type="hidden" name="redirect_to" value={redirectTo} />
             <div className="space-y-2">
               <Label htmlFor="signin-email">邮箱</Label>
               <Input id="signin-email" name="email" type="text" inputMode="email" autoComplete="email" required />
@@ -63,6 +65,7 @@ export function AuthForms({canSubmit}: AuthFormsProps) {
           </form>
         ) : (
           <form action="/auth/sign-up" method="post" className="space-y-4">
+            <input type="hidden" name="redirect_to" value={redirectTo} />
             <div className="space-y-2">
               <Label htmlFor="display-name">显示名称</Label>
               <Input id="display-name" name="display_name" required />

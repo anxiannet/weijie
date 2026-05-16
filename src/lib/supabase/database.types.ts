@@ -39,6 +39,7 @@ export type Comment = {
   id: string;
   listing_id: string;
   user_id: string;
+  parent_id: string | null;
   body: string;
   created_at: string;
   profiles?: Pick<Profile, 'display_name' | 'avatar_url'> | null;

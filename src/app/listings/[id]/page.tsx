@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import {notFound} from 'next/navigation';
-import {ArrowLeft, CalendarDays, MapPin, MessageCircle, Pencil, TrainFront} from 'lucide-react';
+import {ArrowLeft, CalendarDays, MapPin, MessageCircle, Pencil, Reply, TrainFront} from 'lucide-react';
 import {addCommentAction} from '@/app/actions';
 import {FavoriteButton} from '@/components/FavoriteButton';
 import {SubmitButton} from '@/components/SubmitButton';
@@ -14,6 +14,106 @@ import {createSupabaseAdminClient, createSupabaseServerClient} from '@/lib/supab
 import type {Comment, ListingWithOwner} from '@/lib/supabase/database.types';
 
 export const dynamic = 'force-dynamic';
+
+type CommentNode = Comment & {
+  replies: CommentNode[];
+};
+
+type CommentGroup = {
+  date: string;
+  comments: CommentNode[];
+};
+
+function formatCommentDate(createdAt: string) {
+  return new Date(createdAt).toLocaleDateString('zh-SG');
+}
+
+function buildCommentTree(comments: Comment[]) {
+  const nodeMap = new Map<string, CommentNode>();
+  const roots: CommentNode[] = [];
+
+  comments.forEach((comment) => {
+    nodeMap.set(comment.id, {...comment, replies: []});
+  });
+
+  nodeMap.forEach((comment) => {
+    if (comment.parent_id && nodeMap.has(comment.parent_id)) {
+      nodeMap.get(comment.parent_id)?.replies.push(comment);
+    } else {
+      roots.push(comment);
+    }
+  });
+
+  return roots;
+}
+
+function groupCommentsByDate(comments: CommentNode[]) {
+  return comments.reduce<CommentGroup[]>((groups, comment) => {
+    const date = formatCommentDate(comment.created_at);
+    const lastGroup = groups[groups.length - 1];
+
+    if (lastGroup?.date === date) {
+      lastGroup.comments.push(comment);
+    } else {
+      groups.push({date, comments: [comment]});
+    }
+
+    return groups;
+  }, []);
+}
+
+function CommentItem({
+  comment,
+  listingId,
+  userId,
+  depth = 0,
+}: {
+  comment: CommentNode;
+  listingId: string;
+  userId: string | null;
+  depth?: number;
+}) {
+  return (
+    <article className={depth === 0 ? 'py-2.5 first:pt-0 last:pb-0' : 'border-l pl-4 py-2 first:pt-1 last:pb-0'}>
+      {userId ? (
+        <details>
+          <summary className="flex cursor-pointer list-none flex-wrap items-baseline gap-x-2 gap-y-1 text-sm leading-6 marker:hidden">
+            <span className="font-medium text-foreground">{comment.profiles?.display_name || '维界用户'}</span>
+            <span className="break-words text-muted-foreground">{comment.body}</span>
+            <span className="inline-flex items-center gap-1 text-xs font-medium text-primary">
+              <Reply className="h-3 w-3" />
+              回复
+            </span>
+          </summary>
+          <form action={addCommentAction} className="mt-2 space-y-2">
+            <input type="hidden" name="listing_id" value={listingId} />
+            <input type="hidden" name="parent_id" value={comment.id} />
+            <Textarea
+              name="body"
+              placeholder={`回复 ${comment.profiles?.display_name || '维界用户'}`}
+              required
+              className="min-h-20"
+            />
+            <SubmitButton idleText="发布回复" pendingText="发布中..." />
+          </form>
+        </details>
+      ) : (
+        <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 text-sm leading-6">
+          <span className="font-medium text-foreground">{comment.profiles?.display_name || '维界用户'}</span>
+          <span className="break-words text-muted-foreground">{comment.body}</span>
+        </div>
+      )}
+
+      {comment.replies.length > 0 && (
+        <div className="mt-3 space-y-1">
+          {comment.replies.map((reply) => (
+            <CommentItem key={reply.id} comment={reply} listingId={listingId} userId={userId} depth={depth + 1} />
+          ))}
+        </div>
+      )}
+    </article>
+  );
+}
 
 async function getListing(id: string) {
   const supabase = await createSupabaseServerClient();
@@ -41,7 +141,7 @@ async function getListing(id: string) {
     .from('comments')
     .select('*, profiles(display_name, avatar_url)')
     .eq('listing_id', id)
-    .order('created_at', {ascending: false});
+    .order('created_at', {ascending: true});
 
   return {
     listing: data as ListingWithOwner,
@@ -82,6 +182,8 @@ export default async function ListingDetailPage({
   const imageUrls = Array.isArray(listing.image_urls) ? listing.image_urls : [];
   const amenities = Array.isArray(listing.amenities) ? listing.amenities : [];
   const images = imageUrls.length > 0 ? imageUrls : ['/weijie-logo-wordmark.png'];
+  const commentTree = buildCommentTree(comments);
+  const commentGroups = groupCommentsByDate(commentTree);
 
   return (
     <main className="min-h-screen bg-background">
@@ -168,19 +270,24 @@ export default async function ListingDetailPage({
                 </CardContent>
               </Card>
 
-              <div className="mt-4 space-y-3">
-                {comments.map((comment) => (
-                  <Card key={comment.id}>
-                    <CardContent className="p-5">
-                      <div className="flex items-center justify-between gap-3">
-                        <p className="font-medium">{comment.profiles?.display_name || '维界用户'}</p>
-                        <p className="text-xs text-muted-foreground">{new Date(comment.created_at).toLocaleDateString('zh-SG')}</p>
+              <Card className="mt-4">
+                <CardContent className="space-y-3 p-5">
+                  {commentGroups.length > 0 ? (
+                    commentGroups.map((group) => (
+                      <div key={group.date}>
+                        <p className="mb-1.5 text-xs font-medium text-muted-foreground">{group.date}</p>
+                        <div className="divide-y">
+                          {group.comments.map((comment) => (
+                            <CommentItem key={comment.id} comment={comment} listingId={listing.id} userId={userId} />
+                          ))}
+                        </div>
                       </div>
-                      <p className="mt-3 whitespace-pre-line text-sm leading-6 text-muted-foreground">{comment.body}</p>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+                    ))
+                  ) : (
+                    <p className="text-sm text-muted-foreground">还没有留言。可以先询问入住时间、费用包含项或看房安排。</p>
+                  )}
+                </CardContent>
+              </Card>
             </section>
           </div>
 

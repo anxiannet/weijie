@@ -51,14 +51,50 @@ create table if not exists public.comments (
   id uuid primary key default gen_random_uuid(),
   listing_id uuid not null references public.listings(id) on delete cascade,
   user_id uuid not null references public.profiles(id) on delete cascade,
+  parent_id uuid references public.comments(id) on delete cascade,
   body text not null check (char_length(body) between 1 and 1200),
   created_at timestamptz not null default now()
 );
+
+alter table public.comments
+  add column if not exists parent_id uuid references public.comments(id) on delete cascade;
 
 create index if not exists listings_status_created_idx on public.listings(status, created_at desc);
 create index if not exists listings_school_idx on public.listings(nearest_school);
 create index if not exists listings_price_idx on public.listings(price_sgd);
 create index if not exists comments_listing_created_idx on public.comments(listing_id, created_at desc);
+create index if not exists comments_parent_created_idx on public.comments(parent_id, created_at asc);
+
+create or replace function public.ensure_comment_parent_listing()
+returns trigger
+language plpgsql
+as $$
+begin
+  if new.parent_id is null then
+    return new;
+  end if;
+
+  if new.parent_id = new.id then
+    raise exception 'comment cannot reply to itself';
+  end if;
+
+  if not exists (
+    select 1 from public.comments parent
+    where parent.id = new.parent_id
+    and parent.listing_id = new.listing_id
+  ) then
+    raise exception 'comment parent must belong to the same listing';
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists ensure_comment_parent_listing on public.comments;
+create trigger ensure_comment_parent_listing
+  before insert or update of parent_id, listing_id on public.comments
+  for each row
+  execute function public.ensure_comment_parent_listing();
 
 create or replace function public.handle_new_user()
 returns trigger

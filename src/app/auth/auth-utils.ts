@@ -46,6 +46,20 @@ export function redirectTo(request: NextRequest, path: string) {
   return NextResponse.redirect(new URL(path, request.url), {status: 303});
 }
 
+export function getSafeRedirectPath(value: FormDataEntryValue | string | string[] | undefined | null) {
+  const path = Array.isArray(value) ? value[0] : value;
+
+  if (typeof path !== 'string' || !path.startsWith('/') || path.startsWith('//')) {
+    return '/';
+  }
+
+  if (path.startsWith('/auth')) {
+    return '/';
+  }
+
+  return path;
+}
+
 export function createAuthRouteClient(request: NextRequest, response: NextResponse) {
   if (!appEnv.supabaseUrl || !appEnv.supabaseAnonKey) {
     return null;

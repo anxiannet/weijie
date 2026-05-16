@@ -27,7 +27,7 @@ export default async function NewListingPage({
   } = supabase ? await supabase.auth.getUser() : {data: {user: null}};
 
   if (supabase && !user) {
-    redirect('/auth');
+    redirect('/auth?next=/listings/new&message=登录后可以发布房源');
   }
 
   return (
