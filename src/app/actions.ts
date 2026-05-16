@@ -72,6 +72,23 @@ async function requireUser() {
   return {supabase, user};
 }
 
+async function ensureProfile(user: Awaited<ReturnType<typeof requireUser>>['user']) {
+  const adminClient = createSupabaseAdminClient();
+
+  if (!adminClient) {
+    return;
+  }
+
+  const displayName =
+    typeof user.user_metadata?.display_name === 'string' && user.user_metadata.display_name.trim()
+      ? user.user_metadata.display_name.trim()
+      : user.email?.split('@')[0] || '维界用户';
+
+  await (adminClient as any)
+    .from('profiles')
+    .upsert({id: user.id, display_name: displayName}, {onConflict: 'id', ignoreDuplicates: true});
+}
+
 export async function signInAction(formData: FormData) {
   const supabase = await createSupabaseServerClient();
   if (!supabase) {
@@ -240,18 +257,46 @@ export async function toggleFavoriteAction(formData: FormData) {
 
 export async function addCommentAction(formData: FormData) {
   const {supabase, user} = await requireUser();
+  const writeClient = createSupabaseAdminClient() || supabase;
   const listingId = requireString(formData, 'listing_id');
   const body = requireString(formData, 'body');
+  let actionError: string | null = null;
 
-  const {error} = await (supabase as any).from('comments').insert({
-    listing_id: listingId,
-    user_id: user.id,
-    body,
-  });
+  try {
+    await ensureProfile(user);
 
-  if (error) {
-    throw new Error(error.message);
+    const {data: listing, error: listingError} = await (writeClient as any)
+      .from('listings')
+      .select('id, status')
+      .eq('id', listingId)
+      .maybeSingle();
+
+    if (listingError) {
+      throw new Error(listingError.message);
+    }
+
+    if (!listing || listing.status !== 'published') {
+      throw new Error('这条房源暂时不能留言');
+    }
+
+    const {error} = await (writeClient as any).from('comments').insert({
+      listing_id: listingId,
+      user_id: user.id,
+      body,
+    });
+
+    if (error) {
+      throw new Error(error.message);
+    }
+  } catch (error) {
+    actionError = toActionErrorMessage(error);
   }
 
   revalidatePath(`/listings/${listingId}`);
+
+  if (actionError) {
+    redirect(`/listings/${listingId}?comment_error=${encodeURIComponent(actionError)}#comments`);
+  }
+
+  redirect(`/listings/${listingId}?comment=posted#comments`);
 }

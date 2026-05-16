@@ -52,10 +52,15 @@ async function getListing(id: string) {
 
 export default async function ListingDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{id: string}>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const {id} = await params;
+  const paramsValue = searchParams ? await searchParams : {};
+  const commentError = typeof paramsValue.comment_error === 'string' ? paramsValue.comment_error : '';
+  const commentPosted = paramsValue.comment === 'posted';
   const {listing, comments, userId, configReady} = await getListing(id);
 
   if (!configReady) {
@@ -132,12 +137,22 @@ export default async function ListingDetailPage({
               )}
             </section>
 
-            <section className="mt-10">
+            <section id="comments" className="mt-10 scroll-mt-6">
               <h2 className="flex items-center gap-2 font-headline text-2xl font-bold">
                 <MessageCircle className="h-5 w-5" /> 留言与提问
               </h2>
               <Card className="mt-4">
                 <CardContent className="p-5">
+                  {commentError && (
+                    <div className="mb-4 rounded-xl border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
+                      {decodeURIComponent(commentError)}
+                    </div>
+                  )}
+                  {commentPosted && (
+                    <div className="mb-4 rounded-xl border border-primary/20 bg-primary/5 p-3 text-sm text-primary">
+                      留言已发布。
+                    </div>
+                  )}
                   {userId ? (
                     <form action={addCommentAction} className="space-y-3">
                       <input type="hidden" name="listing_id" value={listing.id} />
