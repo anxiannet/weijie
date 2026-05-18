@@ -12,6 +12,7 @@ import {
   Plus,
   Search,
   SlidersHorizontal,
+  UserSearch,
   Utensils,
 } from 'lucide-react';
 import {Badge} from '@/components/ui/badge';
@@ -231,6 +232,13 @@ export default async function MarketplaceHome({
                   <SidebarMenuButton asChild tooltip="指南">
                     <a href="/guides">
                       <BookOpen /> <span>生活指南</span>
+                    </a>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild tooltip="找人">
+                    <a href="/people">
+                      <UserSearch /> <span>找人</span>
                     </a>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
