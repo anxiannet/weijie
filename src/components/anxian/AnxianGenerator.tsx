@@ -37,6 +37,7 @@ export function AnxianGenerator({template}: {template: AnxianTemplate}) {
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [isRenderingPreview, setIsRenderingPreview] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [result, setResult] = useState<PreviewResult | null>(null);
 
   const missingRequired = useMemo(() => {
@@ -135,6 +136,37 @@ export function AnxianGenerator({template}: {template: AnxianTemplate}) {
     document.body.removeChild(link);
 
     await trackEvent('share_click', {action: 'download_preview'});
+  }
+
+  async function startCheckout() {
+    if (!result?.generationId) return;
+    setIsCheckingOut(true);
+
+    try {
+      const response = await fetch('/api/anxian/checkout', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          anonymousId: getAnonymousId(),
+          templateSlug: template.slug,
+          generationId: result.generationId,
+        }),
+      });
+
+      const data = (await response.json()) as {ok: boolean; url?: string; error?: string};
+      if (!data.ok || !data.url) {
+        throw new Error(data.error || '无法创建支付订单');
+      }
+
+      window.location.href = data.url;
+    } catch (error) {
+      setResult((current) => ({
+        ...(current || {ok: false}),
+        ok: false,
+        error: error instanceof Error ? error.message : '支付跳转失败',
+      }));
+      setIsCheckingOut(false);
+    }
   }
 
   return (
@@ -256,9 +288,10 @@ export function AnxianGenerator({template}: {template: AnxianTemplate}) {
             {result?.ok ? (
               <Button
                 className="w-full bg-emerald-500 text-black hover:bg-emerald-400"
-                onClick={() => trackEvent('checkout_click')}
+                onClick={startCheckout}
+                disabled={isCheckingOut}
               >
-                下载高清无水印 · {formatSgd(template.priceCents)}
+                {isCheckingOut ? '正在跳转支付...' : `下载高清无水印 · ${formatSgd(template.priceCents)}`}
               </Button>
             ) : null}
 
