@@ -3,10 +3,17 @@ import {headers} from 'next/headers';
 
 export const dynamic = 'force-dynamic';
 
-const DEPLOYMENT_MARKER = 'anxian-domain-diagnostics-2026-05-23-01';
+const DEPLOYMENT_MARKER = 'anxian-domain-diagnostics-2026-05-24-stripe-01';
 
 function normalizeHost(value: string | null) {
   return value?.split(',')[0]?.split(':')[0]?.trim().toLowerCase() || null;
+}
+
+function getStripeMode(secretKey?: string) {
+  if (!secretKey) return null;
+  if (secretKey.startsWith('sk_live_')) return 'live';
+  if (secretKey.startsWith('sk_test_')) return 'test';
+  return 'unknown';
 }
 
 export async function GET() {
@@ -16,6 +23,8 @@ export async function GET() {
   const proto = headerStore.get('x-forwarded-proto');
   const targetHost = 'anxian.weijie.sg';
   const matchedAnxianHost = host === targetHost || forwardedHost === targetHost;
+  const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+  const stripeWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
   return NextResponse.json(
     {
@@ -43,6 +52,9 @@ export async function GET() {
         hasSupabaseServiceRole: Boolean(
           process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY
         ),
+        hasStripeSecretKey: Boolean(stripeSecretKey),
+        stripeMode: getStripeMode(stripeSecretKey),
+        hasStripeWebhookSecret: Boolean(stripeWebhookSecret),
       },
       expected: {
         root: 'https://anxian.weijie.sg/ should render /anxian through middleware rewrite',
