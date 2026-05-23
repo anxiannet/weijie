@@ -4,6 +4,7 @@ import {ANXIAN_TEMPLATES, formatSgd} from '@/lib/anxian/templates';
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
 import {Badge} from '@/components/ui/badge';
 import {Button} from '@/components/ui/button';
+import {AnxianPageTracker} from '@/components/anxian/AnxianPageTracker';
 
 const categoryIcons = {
   game: Swords,
@@ -16,6 +17,8 @@ const categoryIcons = {
 export default function AnxianHomePage() {
   return (
     <main className="min-h-screen bg-[#071412] text-white">
+      <AnxianPageTracker pagePath="/anxian" />
+
       <section className="border-b border-white/10 bg-[radial-gradient(circle_at_top,#0f766e33,transparent_50%)]">
         <div className="mx-auto flex max-w-7xl flex-col gap-8 px-6 py-20 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-3xl space-y-6">
