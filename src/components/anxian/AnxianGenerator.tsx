@@ -102,22 +102,39 @@ export function AnxianGenerator({template}: {template: AnxianTemplate}) {
     }
   }
 
-  async function trackCheckoutClick() {
+  async function trackEvent(eventName: 'checkout_click' | 'share_click', properties?: Record<string, unknown>) {
     try {
       await fetch('/api/anxian/track', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({
           anonymousId: getAnonymousId(),
-          eventName: 'checkout_click',
+          eventName,
           templateSlug: template.slug,
           generationId: result?.generationId,
-          properties: {priceCents: template.priceCents, hasUploadedImage: Boolean(uploadedImage)},
+          properties: {
+            priceCents: template.priceCents,
+            hasUploadedImage: Boolean(uploadedImage),
+            ...properties,
+          },
         }),
       });
     } catch {
-      // Analytics must never block checkout UX.
+      // Analytics must never block UX.
     }
+  }
+
+  async function downloadPreview() {
+    if (!previewImage) return;
+
+    const link = document.createElement('a');
+    link.href = previewImage;
+    link.download = `anxian-preview-${template.slug}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    await trackEvent('share_click', {action: 'download_preview'});
   }
 
   return (
@@ -226,10 +243,20 @@ export function AnxianGenerator({template}: {template: AnxianTemplate}) {
               </div>
             </div>
 
+            {previewImage ? (
+              <Button
+                variant="secondary"
+                className="w-full bg-white/10 text-white hover:bg-white/20"
+                onClick={downloadPreview}
+              >
+                下载低清水印图
+              </Button>
+            ) : null}
+
             {result?.ok ? (
               <Button
                 className="w-full bg-emerald-500 text-black hover:bg-emerald-400"
-                onClick={trackCheckoutClick}
+                onClick={() => trackEvent('checkout_click')}
               >
                 下载高清无水印 · {formatSgd(template.priceCents)}
               </Button>
