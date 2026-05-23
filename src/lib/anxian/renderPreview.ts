@@ -3,9 +3,10 @@ export type PreviewRenderPayload = {
   lines: string[];
   watermark: string;
   accent?: string;
+  imageUrl?: string | null;
 };
 
-export function buildPreviewDataUrl(payload: PreviewRenderPayload) {
+export async function buildPreviewDataUrl(payload: PreviewRenderPayload) {
   const canvas = document.createElement('canvas');
   canvas.width = 900;
   canvas.height = 1200;
@@ -24,6 +25,22 @@ export function buildPreviewDataUrl(payload: PreviewRenderPayload) {
   ctx.fillStyle = gradient;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+  if (payload.imageUrl) {
+    try {
+      const image = await loadImage(payload.imageUrl);
+
+      ctx.save();
+      ctx.globalAlpha = 0.38;
+      ctx.drawImage(image, 0, 0, canvas.width, canvas.height * 0.52);
+      ctx.restore();
+
+      ctx.fillStyle = 'rgba(0,0,0,0.38)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height * 0.52);
+    } catch {
+      // ignore image load errors
+    }
+  }
+
   ctx.fillStyle = `${accent}22`;
   ctx.beginPath();
   ctx.arc(canvas.width * 0.82, canvas.height * 0.18, 240, 0, Math.PI * 2);
@@ -35,7 +52,7 @@ export function buildPreviewDataUrl(payload: PreviewRenderPayload) {
 
   wrapText(ctx, payload.title, 70, 90, 760, 86);
 
-  let y = 360;
+  let y = payload.imageUrl ? 540 : 360;
 
   for (const line of payload.lines) {
     ctx.fillStyle = 'rgba(255,255,255,0.92)';
@@ -56,6 +73,16 @@ export function buildPreviewDataUrl(payload: PreviewRenderPayload) {
   ctx.fillText(payload.watermark, 70, canvas.height - 90);
 
   return canvas.toDataURL('image/png', 0.92);
+}
+
+async function loadImage(src: string) {
+  return await new Promise<HTMLImageElement>((resolve, reject) => {
+    const image = new Image();
+    image.crossOrigin = 'anonymous';
+    image.onload = () => resolve(image);
+    image.onerror = reject;
+    image.src = src;
+  });
 }
 
 function wrapText(
