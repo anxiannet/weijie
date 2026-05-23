@@ -13,6 +13,22 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  async rewrites() {
+    return {
+      beforeFiles: [
+        {
+          source: '/',
+          has: [
+            {
+              type: 'host',
+              value: 'anxian.weijie.sg',
+            },
+          ],
+          destination: '/anxian',
+        },
+      ],
+    };
+  },
   images: {
     remotePatterns: [
       {
