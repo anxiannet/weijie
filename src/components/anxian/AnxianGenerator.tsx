@@ -1,7 +1,8 @@
 'use client';
 
 import Image from 'next/image';
-import {useMemo, useState} from 'react';
+import {useEffect, useMemo, useState} from 'react';
+import {AnxianImageUpload} from '@/components/anxian/AnxianImageUpload';
 import {Button} from '@/components/ui/button';
 import {Card, CardContent} from '@/components/ui/card';
 import {Input} from '@/components/ui/input';
@@ -32,6 +33,9 @@ function getAnonymousId() {
 
 export function AnxianGenerator({template}: {template: AnxianTemplate}) {
   const [values, setValues] = useState<Record<string, string>>({});
+  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [isRenderingPreview, setIsRenderingPreview] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [result, setResult] = useState<PreviewResult | null>(null);
 
@@ -39,18 +43,39 @@ export function AnxianGenerator({template}: {template: AnxianTemplate}) {
     return template.fields.filter((field) => field.required && !values[field.name]?.trim());
   }, [template.fields, values]);
 
-  const previewImage = useMemo(() => {
-    if (!result?.preview) return null;
+  useEffect(() => {
+    let cancelled = false;
 
-    return buildPreviewDataUrl({
-      title: result.preview.title,
-      lines: result.preview.lines,
-      watermark: result.preview.watermark,
-    });
-  }, [result]);
+    async function render() {
+      if (!result?.preview) {
+        setPreviewImage(null);
+        return;
+      }
+
+      setIsRenderingPreview(true);
+      const dataUrl = await buildPreviewDataUrl({
+        title: result.preview.title,
+        lines: result.preview.lines,
+        watermark: result.preview.watermark,
+        imageUrl: uploadedImage,
+      });
+
+      if (!cancelled) {
+        setPreviewImage(dataUrl);
+        setIsRenderingPreview(false);
+      }
+    }
+
+    void render();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [result, uploadedImage]);
 
   async function generatePreview() {
     setIsGenerating(true);
+    setPreviewImage(null);
     setResult(null);
 
     try {
@@ -61,7 +86,10 @@ export function AnxianGenerator({template}: {template: AnxianTemplate}) {
         body: JSON.stringify({
           anonymousId,
           templateSlug: template.slug,
-          inputPayload: values,
+          inputPayload: {
+            ...values,
+            hasUploadedImage: Boolean(uploadedImage),
+          },
         }),
       });
 
@@ -84,7 +112,7 @@ export function AnxianGenerator({template}: {template: AnxianTemplate}) {
           eventName: 'checkout_click',
           templateSlug: template.slug,
           generationId: result?.generationId,
-          properties: {priceCents: template.priceCents},
+          properties: {priceCents: template.priceCents, hasUploadedImage: Boolean(uploadedImage)},
         }),
       });
     } catch {
@@ -98,9 +126,7 @@ export function AnxianGenerator({template}: {template: AnxianTemplate}) {
         <CardContent className="space-y-6 p-6">
           <div className="space-y-2">
             <div className="text-sm uppercase tracking-widest text-white/40">上传图片</div>
-            <div className="flex min-h-[220px] items-center justify-center rounded-3xl border border-dashed border-white/15 bg-black/20 px-6 text-center text-white/40">
-              第一版先用文本生成低清预览；图片上传在下一步接入 anx_uploads。
-            </div>
+            <AnxianImageUpload value={uploadedImage} onChange={setUploadedImage} />
           </div>
 
           <div className="grid gap-4">
@@ -152,10 +178,10 @@ export function AnxianGenerator({template}: {template: AnxianTemplate}) {
           <div className="flex flex-wrap items-center gap-4 border-t border-white/10 pt-6">
             <Button
               className="bg-emerald-500 text-black hover:bg-emerald-400 disabled:opacity-50"
-              disabled={isGenerating || missingRequired.length > 0}
+              disabled={isGenerating || isRenderingPreview || missingRequired.length > 0}
               onClick={generatePreview}
             >
-              {isGenerating ? '生成中...' : '生成低清预览'}
+              {isGenerating || isRenderingPreview ? '生成中...' : '生成低清预览'}
             </Button>
 
             <div className="text-sm text-white/50">
@@ -187,7 +213,7 @@ export function AnxianGenerator({template}: {template: AnxianTemplate}) {
             ) : (
               <div className="text-center text-white/35">
                 <div className="text-2xl font-bold">免费低清预览</div>
-                <div className="mt-2 text-sm">填写左侧内容后生成</div>
+                <div className="mt-2 text-sm">上传图片并填写左侧内容后生成</div>
               </div>
             )}
           </div>
