@@ -1,10 +1,12 @@
 'use client';
 
+import Image from 'next/image';
 import {useMemo, useState} from 'react';
 import {Button} from '@/components/ui/button';
 import {Card, CardContent} from '@/components/ui/card';
 import {Input} from '@/components/ui/input';
 import {Textarea} from '@/components/ui/textarea';
+import {buildPreviewDataUrl} from '@/lib/anxian/renderPreview';
 import type {AnxianTemplate} from '@/lib/anxian/templates';
 import {formatSgd} from '@/lib/anxian/templates';
 
@@ -36,6 +38,16 @@ export function AnxianGenerator({template}: {template: AnxianTemplate}) {
   const missingRequired = useMemo(() => {
     return template.fields.filter((field) => field.required && !values[field.name]?.trim());
   }, [template.fields, values]);
+
+  const previewImage = useMemo(() => {
+    if (!result?.preview) return null;
+
+    return buildPreviewDataUrl({
+      title: result.preview.title,
+      lines: result.preview.lines,
+      watermark: result.preview.watermark,
+    });
+  }, [result]);
 
   async function generatePreview() {
     setIsGenerating(true);
@@ -162,22 +174,15 @@ export function AnxianGenerator({template}: {template: AnxianTemplate}) {
       <div className="space-y-6">
         <Card className="overflow-hidden border-white/10 bg-white/5 text-white">
           <div className="flex aspect-[4/5] items-center justify-center bg-[linear-gradient(135deg,#0f766e22,#000)] p-6">
-            {result?.ok && result.preview ? (
-              <div className="w-full rounded-3xl border border-white/15 bg-black/45 p-6 shadow-2xl backdrop-blur">
-                <div className="mb-5 text-sm uppercase tracking-[0.3em] text-emerald-300/70">
-                  ANXIAN PREVIEW
-                </div>
-                <h2 className="text-3xl font-black leading-tight">{result.preview.title}</h2>
-                <div className="mt-6 space-y-3 text-lg text-white/80">
-                  {result.preview.lines.map((line) => (
-                    <div key={line} className="rounded-2xl bg-white/10 px-4 py-3">
-                      {line}
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-8 text-right text-xs text-white/35">
-                  {result.preview.watermark}
-                </div>
+            {previewImage ? (
+              <div className="relative aspect-[3/4] w-full max-w-[420px] overflow-hidden rounded-[32px] border border-white/10 shadow-2xl">
+                <Image
+                  src={previewImage}
+                  alt="Anxian preview"
+                  fill
+                  unoptimized
+                  className="object-cover"
+                />
               </div>
             ) : (
               <div className="text-center text-white/35">
