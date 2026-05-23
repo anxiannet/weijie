@@ -10,6 +10,12 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // Keep diagnostics outside the rewrite path so it can verify whether the
+  // custom domain reached this deployment even when the anxian rewrite fails.
+  if (pathname === '/diagnostics' || pathname.startsWith('/diagnostics/')) {
+    return NextResponse.next();
+  }
+
   if (
     pathname.startsWith('/_next') ||
     pathname.startsWith('/api') ||
