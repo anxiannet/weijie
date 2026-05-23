@@ -2,11 +2,26 @@ import {NextRequest, NextResponse} from 'next/server';
 
 const ANXIAN_HOSTS = new Set(['anxian.weijie.sg']);
 
+function normalizeHost(value: string | null) {
+  return value?.split(',')[0]?.split(':')[0]?.trim().toLowerCase();
+}
+
+function getRequestHost(request: NextRequest) {
+  const host = normalizeHost(request.headers.get('host'));
+  const forwardedHost = normalizeHost(request.headers.get('x-forwarded-host'));
+
+  if (forwardedHost && ANXIAN_HOSTS.has(forwardedHost)) {
+    return forwardedHost;
+  }
+
+  return host;
+}
+
 export function middleware(request: NextRequest) {
-  const host = request.headers.get('host')?.split(':')[0]?.toLowerCase();
+  const requestHost = getRequestHost(request);
   const {pathname, search} = request.nextUrl;
 
-  if (!host || !ANXIAN_HOSTS.has(host)) {
+  if (!requestHost || !ANXIAN_HOSTS.has(requestHost)) {
     return NextResponse.next();
   }
 
