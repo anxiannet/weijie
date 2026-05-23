@@ -2,6 +2,7 @@ import {notFound} from 'next/navigation';
 import {Badge} from '@/components/ui/badge';
 import {Card, CardContent} from '@/components/ui/card';
 import {AnxianGenerator} from '@/components/anxian/AnxianGenerator';
+import {AnxianPageTracker} from '@/components/anxian/AnxianPageTracker';
 import {getAnxianTemplate} from '@/lib/anxian/templates';
 
 export default async function AnxianTemplatePage({
@@ -18,6 +19,12 @@ export default async function AnxianTemplatePage({
 
   return (
     <main className="min-h-screen bg-[#071412] px-6 py-10 text-white">
+      <AnxianPageTracker
+        pagePath={`/anxian/${slug}`}
+        templateSlug={slug}
+        properties={{category: template.category}}
+      />
+
       <div className="mx-auto max-w-7xl space-y-8">
         <div className="space-y-4">
           <Badge className="bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/20">
