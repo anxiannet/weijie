@@ -1,3 +1,5 @@
+import {headers} from 'next/headers';
+import {redirect} from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import {
@@ -55,6 +57,20 @@ type CurrentUser = {
 
 function getParam(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
+}
+
+function normalizeHost(value: string | null) {
+  return value?.split(',')[0]?.split(':')[0]?.trim().toLowerCase();
+}
+
+async function redirectAnxianHostFromRoot() {
+  const headerStore = await headers();
+  const host = normalizeHost(headerStore.get('host'));
+  const forwardedHost = normalizeHost(headerStore.get('x-forwarded-host'));
+
+  if (host === 'anxian.weijie.sg' || forwardedHost === 'anxian.weijie.sg') {
+    redirect('/anxian');
+  }
 }
 
 async function getMarketplaceData(filters: HomeSearchParams) {
@@ -183,6 +199,8 @@ export default async function MarketplaceHome({
 }: {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
+  await redirectAnxianHostFromRoot();
+
   const params = (await searchParams) || {};
   const filters = {
     q: getParam(params.q) || '',
@@ -320,88 +338,142 @@ export default async function MarketplaceHome({
                   </form>
                 </>
               ) : (
-                <Button asChild size="sm">
-                  <Link href="/auth">登录</Link>
-                </Button>
+                <>
+                  <Button asChild variant="ghost" size="sm">
+                    <Link href="/login">登录</Link>
+                  </Button>
+                  <Button asChild size="sm">
+                    <Link href="/signup">注册</Link>
+                  </Button>
+                </>
               )}
             </nav>
           </header>
 
-          <div className="mx-auto max-w-7xl p-4 md:p-8">
-            <section id="listings" className="space-y-6">
-              <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-                <div className="flex flex-col gap-2">
-                  <h2 className="font-headline text-3xl font-bold text-foreground">新加坡房源库</h2>
-                  <p className="text-muted-foreground">真实房源、学生公寓与合租信息，快速找到适合自己的住所。</p>
+          <section className="border-b bg-gradient-to-b from-primary/10 via-background to-background px-4 py-10 md:px-8 md:py-14">
+            <div className="mx-auto flex max-w-6xl flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
+              <div className="max-w-2xl space-y-4">
+                <Badge variant="outline" className="rounded-full border-primary/30 bg-primary/5 text-primary">
+                  新加坡留学生活系统
+                </Badge>
+                <div className="space-y-3">
+                  <h1 className="font-headline text-4xl font-bold tracking-tight text-foreground md:text-5xl">
+                    找房、找人、找生活入口，在维界完成。
+                  </h1>
+                  <p className="text-base leading-7 text-muted-foreground md:text-lg">
+                    从房源、学校、美食到活动和达人，维界把新加坡留学生活拆成清晰可搜索的系统模块。
+                  </p>
                 </div>
-                <p className="text-sm text-muted-foreground">{listings.length} 个房源</p>
+                <div className="flex flex-wrap gap-3">
+                  <Button asChild size="lg">
+                    <a href="#listings">
+                      浏览房源 <ChevronRight className="h-4 w-4" />
+                    </a>
+                  </Button>
+                  <Button asChild variant="outline" size="lg">
+                    <Link href="/people">寻找达人</Link>
+                  </Button>
+                </div>
               </div>
 
-              <form className="grid grid-cols-1 gap-3 rounded-2xl border bg-card p-4 shadow-sm md:grid-cols-[1fr_220px_180px_160px_auto]">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input name="q" defaultValue={filters.q} placeholder="搜索地点、标题或描述" className="pl-9" />
-                </div>
-                <Select name="school" defaultValue={filters.school}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="学校" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">全部学校</SelectItem>
-                    {SCHOOL_OPTIONS.map((school) => (
-                      <SelectItem key={school} value={school}>{school}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Select name="type" defaultValue={filters.type}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="类型" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">全部类型</SelectItem>
-                    <SelectItem value="room">单间</SelectItem>
-                    <SelectItem value="whole_unit">整套</SelectItem>
-                    <SelectItem value="student_apartment">学生公寓</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Input name="max" defaultValue={filters.max} inputMode="numeric" placeholder="最高租金" />
-                <Button>
-                  <SlidersHorizontal className="h-4 w-4" /> 筛选
-                </Button>
-              </form>
+              <Card className="w-full max-w-md border-primary/20 bg-card/80 shadow-sm backdrop-blur">
+                <CardContent className="p-5">
+                  <div className="grid grid-cols-3 gap-3 text-center">
+                    <div className="rounded-lg border bg-background p-3">
+                      <p className="text-2xl font-bold text-primary">{listings.length}</p>
+                      <p className="mt-1 text-xs text-muted-foreground">已发布房源</p>
+                    </div>
+                    <div className="rounded-lg border bg-background p-3">
+                      <p className="text-2xl font-bold text-primary">4</p>
+                      <p className="mt-1 text-xs text-muted-foreground">生活模块</p>
+                    </div>
+                    <div className="rounded-lg border bg-background p-3">
+                      <p className="text-2xl font-bold text-primary">24h</p>
+                      <p className="mt-1 text-xs text-muted-foreground">持续更新</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </section>
 
-              {(!configReady || !schemaReady) && (
-                <Card className="border-amber-200 bg-amber-50 text-amber-950">
-                  <CardContent className="p-6">
-                    <p className="font-semibold">{configReady ? '需要初始化数据库表' : '需要连接生产数据源'}</p>
-                    <p className="mt-2 text-sm leading-6">
-                      {configReady
-                        ? 'Supabase 环境变量已生效。请在 Supabase SQL Editor 执行 `supabase/migrations/001_marketplace.sql`，创建 listings、favorites、comments 和 profiles 表。'
-                        : '请在 Vercel 配置 Supabase 环境变量，并执行 `supabase/migrations/001_marketplace.sql`。页面已按真实平台接入，不使用演示数据兜底。'}
-                    </p>
+          <section className="px-4 py-8 md:px-8" id="listings">
+            <div className="mx-auto max-w-6xl space-y-6">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                <div>
+                  <h2 className="font-headline text-2xl font-bold text-foreground">房源中心</h2>
+                  <p className="mt-1 text-sm text-muted-foreground">筛选预算、学校和房型，先找到最合适的生活入口。</p>
+                </div>
+                <form className="grid w-full gap-3 rounded-xl border bg-card p-3 shadow-sm lg:max-w-3xl lg:grid-cols-[1.4fr_1fr_1fr_1fr_auto]">
+                  <div className="relative">
+                    <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input name="q" defaultValue={filters.q} placeholder="搜索地点、描述" className="pl-9" />
+                  </div>
+                  <Select name="school" defaultValue={filters.school}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="学校" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">全部学校</SelectItem>
+                      {SCHOOL_OPTIONS.map((school) => (
+                        <SelectItem key={school.value} value={school.value}>
+                          {school.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select name="type" defaultValue={filters.type}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="房型" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">全部房型</SelectItem>
+                      {Object.entries(LISTING_TYPE_LABELS).map(([value, label]) => (
+                        <SelectItem key={value} value={value}>
+                          {label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Input name="max" defaultValue={filters.max} type="number" min="0" placeholder="最高预算" />
+                  <Button type="submit" className="gap-2">
+                    <SlidersHorizontal className="h-4 w-4" /> 筛选
+                  </Button>
+                </form>
+              </div>
+
+              {!configReady ? (
+                <Card className="border-dashed">
+                  <CardContent className="p-6 text-sm text-muted-foreground">
+                    Supabase 环境变量未配置。请设置 NEXT_PUBLIC_SUPABASE_URL 与 NEXT_PUBLIC_SUPABASE_ANON_KEY。
                   </CardContent>
                 </Card>
-              )}
-
-              {listings.length === 0 ? (
-                <div className="rounded-2xl border border-dashed bg-card p-12 text-center">
-                  <Home className="mx-auto h-10 w-10 text-muted-foreground" />
-                  <p className="mt-4 font-semibold">暂无符合条件的房源</p>
-                  <p className="mt-2 text-sm text-muted-foreground">调整筛选条件，或发布第一套真实房源。</p>
-                </div>
+              ) : !schemaReady ? (
+                <Card className="border-dashed">
+                  <CardContent className="p-6 text-sm text-muted-foreground">
+                    数据库表尚未初始化。请先执行 Supabase schema 初始化脚本。
+                  </CardContent>
+                </Card>
+              ) : listings.length === 0 ? (
+                <Card className="border-dashed">
+                  <CardContent className="p-6 text-sm text-muted-foreground">
+                    暂无符合条件的房源。你可以稍后再看，或先发布第一条房源。
+                  </CardContent>
+                </Card>
               ) : (
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                   {listings.map((listing) => (
-                    <ListingCard key={listing.id} listing={listing} currentUser={currentUser} />
+                    <ListingCard
+                      key={listing.id}
+                      listing={listing}
+                      currentUser={currentUser}
+                      refreshFavoriteOnComplete={Boolean(currentUser)}
+                    />
                   ))}
                 </div>
               )}
-            </section>
-
-            <footer className="mt-10 border-t pt-6 text-sm text-muted-foreground">
-              <p className="font-medium text-foreground">维界 · 新加坡留学生活系统</p>
-            </footer>
-          </div>
+            </div>
+          </section>
         </main>
       </div>
     </SidebarProvider>
