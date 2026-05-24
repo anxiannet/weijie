@@ -35,6 +35,8 @@ export function AnxianGenerator({template}: {template: AnxianTemplate}) {
   const [values, setValues] = useState<Record<string, string>>({});
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [savedPreviewUrl, setSavedPreviewUrl] = useState<string | null>(null);
+  const [isSavingPreview, setIsSavingPreview] = useState(false);
   const [isRenderingPreview, setIsRenderingPreview] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
@@ -50,6 +52,7 @@ export function AnxianGenerator({template}: {template: AnxianTemplate}) {
     async function render() {
       if (!result?.preview) {
         setPreviewImage(null);
+        setSavedPreviewUrl(null);
         return;
       }
 
@@ -63,6 +66,7 @@ export function AnxianGenerator({template}: {template: AnxianTemplate}) {
 
       if (!cancelled) {
         setPreviewImage(dataUrl);
+        setSavedPreviewUrl(null);
         setIsRenderingPreview(false);
       }
     }
@@ -74,9 +78,44 @@ export function AnxianGenerator({template}: {template: AnxianTemplate}) {
     };
   }, [result, uploadedImage]);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    async function savePreview() {
+      if (!previewImage || !result?.generationId || savedPreviewUrl || isSavingPreview) return;
+
+      setIsSavingPreview(true);
+      try {
+        const response = await fetch('/api/anxian/save-preview', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            anonymousId: getAnonymousId(),
+            generationId: result.generationId,
+            templateSlug: template.slug,
+            imageDataUrl: previewImage,
+          }),
+        });
+        const data = (await response.json()) as {ok: boolean; url?: string};
+        if (!cancelled && data.ok && data.url) {
+          setSavedPreviewUrl(data.url);
+        }
+      } finally {
+        if (!cancelled) setIsSavingPreview(false);
+      }
+    }
+
+    void savePreview();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [previewImage, result?.generationId, savedPreviewUrl, isSavingPreview, template.slug]);
+
   async function generatePreview() {
     setIsGenerating(true);
     setPreviewImage(null);
+    setSavedPreviewUrl(null);
     setResult(null);
 
     try {
@@ -116,6 +155,7 @@ export function AnxianGenerator({template}: {template: AnxianTemplate}) {
           properties: {
             priceCents: template.priceCents,
             hasUploadedImage: Boolean(uploadedImage),
+            savedPreviewUrl,
             ...properties,
           },
         }),
@@ -273,6 +313,11 @@ export function AnxianGenerator({template}: {template: AnxianTemplate}) {
               <div className="mt-2 text-2xl font-bold">
                 {result?.ok ? '预览已生成' : '等待生成'}
               </div>
+              {previewImage ? (
+                <div className="mt-2 text-xs text-white/35">
+                  {isSavingPreview ? '正在保存预览图...' : savedPreviewUrl ? '预览图已保存' : '预览图待保存'}
+                </div>
+              ) : null}
             </div>
 
             {previewImage ? (
@@ -289,7 +334,7 @@ export function AnxianGenerator({template}: {template: AnxianTemplate}) {
               <Button
                 className="w-full bg-emerald-500 text-black hover:bg-emerald-400"
                 onClick={startCheckout}
-                disabled={isCheckingOut}
+                disabled={isCheckingOut || isSavingPreview}
               >
                 {isCheckingOut ? '正在跳转支付...' : `下载高清无水印 · ${formatSgd(template.priceCents)}`}
               </Button>
